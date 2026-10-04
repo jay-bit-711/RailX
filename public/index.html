@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RailX</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        ink: '#000000',
+        panel: '#0A0A0A',
+        line: '#1F1F1F',
+        soft: '#A1A1AA'
+      }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; }
+  html.light { color-scheme: light; }
+  body { font-family: Inter, system-ui, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .ns::-webkit-scrollbar { display: none; }
+  .ns { -ms-overflow-style: none; scrollbar-width: none; }
+  .chip { border: 1px solid #2A2A2A; background: #0A0A0A; color: #fff; }
+  html.light .chip { border-color: #E4E4E7; background: #F4F4F5; color: #18181B; }
+  .chip.on, .on { background: #fff !important; color: #000 !important; border-color: #fff !important; }
+  html.light .chip.on, html.light .on { background: #18181B !important; color: #fff !important; border-color: #18181B !important; }
+  .addon.on { border-color: #fff; background: rgba(255,255,255,.08); }
+  html.light .addon.on { border-color: #18181B; background: rgba(0,0,0,.06); }
+  .screen { display: none; }
+  .screen.active { display: flex; }
+  .logo-mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 11px; letter-spacing: -0.03em;
+  }
+  .logo-dark { background: #fff; color: #000; }
+  .logo-light { background: #18181B; color: #fff; }
+  html.light .page { background: #FAFAFA; color: #18181B; }
+  html.light .panel { background: #fff; border-color: #E4E4E7 !important; }
+  html.light .muted { color: #71717A !important; }
+  html.light .nav-bar { background: rgba(250,250,250,.95); border-color: #E4E4E7 !important; }
+  html.light .status-bar { background: rgba(250,250,250,.95); }
+  html.light input, html.light select { background: #F4F4F5 !important; border-color: #E4E4E7 !important; color: #18181B !important; }
+</style>
+</head>
+<body class="bg-black flex justify-center min-h-screen">
+<div id="app" class="page w-full max-w-md h-[100vh] sm:h-[960px] sm:rounded-[1.75rem] bg-black sm:border sm:border-[#222] shadow-2xl overflow-hidden relative flex flex-col text-white">
+
+  <!-- ========== ONBOARD ========== -->
+  <div id="onboard" class="absolute inset-0 z-50 bg-black">
+    <div id="screenHero" class="screen active absolute inset-0 flex-col">
+      <div class="absolute top-4 left-4 z-10">
+        <div class="logo-mark logo-dark">RX</div>
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center px-8">
+        <div class="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mb-5">
+          <span class="text-black font-extrabold text-lg tracking-tight">RX</span>
+        </div>
+        <h1 class="text-3xl font-extrabold tracking-tight">RailX</h1>
+        <p class="text-zinc-500 text-sm mt-2 text-center">One app for every rail journey</p>
+      </div>
+      <div class="p-6">
+        <button type="button" onclick="showReg()" class="w-full py-3.5 bg-white text-black font-bold rounded-2xl text-sm active:scale-[.98] transition">Get started</button>
+      </div>
+    </div>
+
+    <div id="screenReg" class="screen absolute inset-0 flex-col bg-black">
+      <div class="px-5 pt-4 flex justify-start">
+        <div class="logo-mark logo-dark">RX</div>
+      </div>
+      <div class="flex-1 overflow-y-auto ns px-5 pt-4 pb-4">
+        <h2 class="text-xl font-extrabold mb-1">Welcome</h2>
+        <p class="text-zinc-500 text-xs mb-6">Setup once · ride everywhere</p>
+        <p class="text-[11px] text-zinc-500 font-medium mb-2 uppercase tracking-wide">I mostly travel</p>
+        <div class="grid grid-cols-2 gap-2 mb-5">
+          <button type="button" class="persona chip on p-3 rounded-xl text-xs font-bold text-left" onclick="pickGroup(this,'persona')">Daily</button>
+          <button type="button" class="persona chip p-3 rounded-xl text-xs font-bold text-left" onclick="pickGroup(this,'persona')">Long trips</button>
+          <button type="button" class="persona chip p-3 rounded-xl text-xs font-bold text-left" onclick="pickGroup(this,'persona')">Instant</button>
+          <button type="button" class="persona chip p-3 rounded-xl text-xs font-bold text-left" onclick="pickGroup(this,'persona')">Door-to-door</button>
+        </div>
+        <p class="text-[11px] text-zinc-500 font-medium mb-2 uppercase tracking-wide">Preferred ride</p>
+        <div class="flex gap-2 mb-5">
+          <button type="button" class="veh chip flex-1 py-2.5 rounded-xl text-[11px] font-bold" onclick="pickGroup(this,'veh')">Bike</button>
+          <button type="button" class="veh chip on flex-1 py-2.5 rounded-xl text-[11px] font-bold" onclick="pickGroup(this,'veh')">Auto</button>
+          <button type="button" class="veh chip flex-1 py-2.5 rounded-xl text-[11px] font-bold" onclick="pickGroup(this,'veh')">Cab</button>
+        </div>
+        <p class="text-[11px] text-zinc-500 font-medium mb-2 uppercase tracking-wide">Phone</p>
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 flex items-center gap-2">
+          <i class="fa-solid fa-phone text-zinc-500 text-sm"></i>
+          <input type="tel" value="+91 98765 43210" class="bg-transparent text-sm flex-1 outline-none">
+        </div>
+      </div>
+      <div class="p-5 border-t border-[#1F1F1F]">
+        <button type="button" onclick="enterApp()" class="w-full py-3.5 bg-white text-black font-bold rounded-2xl text-sm">Let’s ride</button>
+        <button type="button" onclick="showHero()" class="w-full py-2 mt-1 text-zinc-500 text-xs">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR — logo TOP LEFT -->
+  <div class="status-bar px-4 py-2 flex justify-between items-center text-[11px] text-zinc-400 bg-black/95 z-30 shrink-0">
+    <div class="flex items-center gap-2.5">
+      <div class="logo-mark logo-dark" id="headerLogo">RX</div>
+      <span id="clk" class="font-medium">14:50</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-zinc-300 font-semibold text-[10px]">Lvl 9 · 🔥5</span>
+      <button type="button" onclick="toast('3 notifications')" class="relative p-0.5" aria-label="Notifications">
+        <i class="fa-solid fa-bell text-white text-sm"></i>
+        <span class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">3</span>
+      </button>
+      <button type="button" onclick="toggleTheme()" class="p-0.5" title="Toggle theme" aria-label="Theme">
+        <i class="fa-solid fa-circle-half-stroke text-zinc-400 text-sm" id="themeIcon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main" class="flex-1 overflow-y-auto ns pb-[60px] hidden">
+
+    <!-- PLAN -->
+    <div id="t-plan" class="p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <h1 class="text-lg font-bold">Plan</h1>
+        <button type="button" onclick="toast('UTS unreserved')" class="text-[10px] border border-zinc-600 px-2.5 py-1 rounded-lg font-bold">UTS</button>
+      </div>
+      <div class="flex panel bg-[#0A0A0A] border border-[#222] rounded-xl p-1 gap-1">
+        <button type="button" onclick="setMode('choose')" class="mode on flex-1 py-2 rounded-lg text-[11px] font-bold">Choose</button>
+        <button type="button" onclick="setMode('ai')" class="mode chip flex-1 py-2 rounded-lg text-[11px] font-bold">AI Best</button>
+        <button type="button" onclick="setMode('pro')" class="mode chip flex-1 py-2 rounded-lg text-[11px] font-bold">Pro</button>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 space-y-2">
+        <input value="Patancheru / LPI" class="w-full bg-black border border-[#222] rounded-lg px-3 py-2 text-sm font-semibold outline-none">
+        <input value="Gollapudi / BZA" class="w-full bg-black border border-[#222] rounded-lg px-3 py-2 text-sm font-semibold outline-none">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="date" value="2026-10-10" class="bg-black border border-[#222] rounded-lg px-2 py-2 text-xs outline-none">
+          <select class="bg-black border border-[#222] rounded-lg px-2 py-2 text-xs outline-none"><option>Any time</option><option>Morning</option><option>Evening</option></select>
+        </div>
+      </div>
+      <div class="flex gap-1.5 overflow-x-auto ns items-center">
+        <span class="text-[9px] text-zinc-500 muted">PAX</span>
+        <button type="button" onclick="this.classList.toggle('on')" class="chip on shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">You</button>
+        <button type="button" onclick="this.classList.toggle('on')" class="chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">Priya</button>
+        <button type="button" onclick="this.classList.toggle('on')" class="chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">Arjun</button>
+      </div>
+      <div class="flex gap-1.5 items-center">
+        <span class="text-[9px] text-zinc-500 muted">RIDE</span>
+        <button type="button" onclick="pickSibling(this)" class="chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">Bike</button>
+        <button type="button" onclick="pickSibling(this)" class="chip on shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">Auto</button>
+        <button type="button" onclick="pickSibling(this)" class="chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">Cab</button>
+      </div>
+      <div class="flex gap-1 overflow-x-auto ns">
+        <button type="button" onclick="setCls(this)" class="cls on shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold border border-white">General</button>
+        <button type="button" onclick="setCls(this)" class="cls chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">Any</button>
+        <button type="button" onclick="setCls(this)" class="cls chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">SL</button>
+        <button type="button" onclick="setCls(this)" class="cls chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">3A</button>
+        <button type="button" onclick="setCls(this)" class="cls chip shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold">2A</button>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5">
+        <button type="button" onclick="this.classList.toggle('on')" class="addon panel bg-[#0A0A0A] border border-[#222] rounded-lg p-2 text-center text-[9px] font-semibold"><i class="fa-solid fa-motorcycle block mb-0.5 text-zinc-500"></i>1st mi</button>
+        <button type="button" onclick="this.classList.toggle('on')" class="addon panel bg-[#0A0A0A] border border-[#222] rounded-lg p-2 text-center text-[9px] font-semibold"><i class="fa-solid fa-car block mb-0.5 text-zinc-500"></i>Last</button>
+        <button type="button" onclick="this.classList.toggle('on')" class="addon panel bg-[#0A0A0A] border border-[#222] rounded-lg p-2 text-center text-[9px] font-semibold"><i class="fa-solid fa-utensils block mb-0.5 text-zinc-500"></i>Food</button>
+        <button type="button" onclick="this.classList.toggle('on')" class="addon panel bg-[#0A0A0A] border border-[#222] rounded-lg p-2 text-center text-[9px] font-semibold"><i class="fa-solid fa-shield block mb-0.5 text-zinc-500"></i>Shield</button>
+      </div>
+      <div id="panel-choose" class="space-y-1.5">
+        <div class="panel bg-[#0A0A0A] border border-white/25 rounded-xl p-3 flex justify-between cursor-pointer" onclick="openPay()">
+          <div><div class="text-sm font-bold">12739 Vande Bharat</div><div class="text-[10px] text-zinc-500 muted">06:00–10:25 · 3A</div></div>
+          <div class="font-bold">₹1,245</div>
+        </div>
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 flex justify-between cursor-pointer" onclick="openPay()">
+          <div><div class="text-sm font-bold">12710 Simhapuri</div><div class="text-[10px] text-zinc-500 muted">21:15–05:40 · SL</div></div>
+          <div class="font-bold">₹485</div>
+        </div>
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 flex justify-between cursor-pointer" onclick="openPay()">
+          <div><div class="text-sm font-bold">17202 Golconda</div><div class="text-[10px] text-zinc-500 muted">13:10–20:45 · 2A</div></div>
+          <div class="font-bold">₹1,890</div>
+        </div>
+      </div>
+      <div id="panel-ai" class="hidden">
+        <button type="button" onclick="document.getElementById('aiResult').classList.remove('hidden')" class="w-full py-3 bg-white text-black font-bold rounded-xl text-sm">AI: best for my group</button>
+        <div id="aiResult" class="hidden mt-2 panel bg-[#0A0A0A] border border-white/20 rounded-xl p-3">
+          <div class="text-sm font-bold">12739 · 3A · Cab for family</div>
+          <div class="text-[10px] text-zinc-500 muted mt-0.5">Personalized · meeting-safe</div>
+          <button type="button" onclick="openPay()" class="w-full py-2 bg-white text-black font-bold rounded-lg text-xs mt-2">Continue to pay</button>
+        </div>
+      </div>
+      <div id="panel-pro" class="hidden">
+        <button type="button" onclick="toast('Tatkal assist queued')" class="w-full py-3 bg-white text-black font-bold rounded-xl text-sm">Tatkal Assist</button>
+      </div>
+    </div>
+
+    <!-- LIVE -->
+    <div id="t-live" class="p-4 space-y-3 hidden">
+      <div class="flex justify-between items-center">
+        <h1 class="text-lg font-bold">Live · 12739</h1>
+        <button type="button" onclick="toast('Alarm set')" class="relative text-sm"><i class="fa-solid fa-bell"></i><span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full"></span></button>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-4">
+        <div class="flex justify-between mb-2">
+          <div><div class="text-2xl font-extrabold">112</div><div class="text-[10px] text-zinc-500 muted">km/h · On time</div></div>
+          <div class="text-right"><div class="text-sm font-bold">PF 4</div><div class="text-[10px] text-zinc-500 muted">BZA · Green ~6m</div></div>
+        </div>
+        <div class="h-1.5 bg-[#222] rounded-full overflow-hidden"><div class="h-full bg-white rounded-full" style="width:58%"></div></div>
+        <div class="flex justify-between text-[9px] text-zinc-500 muted mt-1.5"><span>SC</span><span class="text-white">Nalgonda</span><span>BZA</span></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3"><div class="text-[9px] text-zinc-500 muted">BEFORE BZA</div><div class="text-sm font-bold">Cross 4 trains</div></div>
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3"><div class="text-[9px] text-zinc-500 muted">SIGNAL</div><div class="text-sm font-bold">Red → Green ~6m</div></div>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5">
+        <button type="button" onclick="toast('Food')" class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-2.5 text-center"><i class="fa-solid fa-utensils text-zinc-400 block mb-1"></i><span class="text-[9px] font-semibold">Food</span></button>
+        <button type="button" onclick="toast('Last mile')" class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-2.5 text-center"><i class="fa-solid fa-car text-zinc-400 block mb-1"></i><span class="text-[9px] font-semibold">Last mi</span></button>
+        <button type="button" onclick="toast('Data pack')" class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-2.5 text-center"><i class="fa-solid fa-mobile text-zinc-400 block mb-1"></i><span class="text-[9px] font-semibold">Data</span></button>
+        <button type="button" onclick="toast('Photo report')" class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-2.5 text-center"><i class="fa-solid fa-camera text-zinc-400 block mb-1"></i><span class="text-[9px] font-semibold">Report</span></button>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3">
+        <div class="text-[10px] text-zinc-500 muted font-bold mb-1">12739 MOMENTS</div>
+        <div class="text-[11px]">SK: Pantry coffee at 110 😂</div>
+        <div class="flex gap-2 mt-1.5 text-sm"><button type="button">😄</button><button type="button">😂</button><button type="button">🚂</button></div>
+      </div>
+    </div>
+
+    <!-- EXPLORE -->
+    <div id="t-explore" class="p-4 space-y-3 hidden">
+      <div class="flex justify-between items-center">
+        <h1 class="text-lg font-bold">Explore</h1>
+        <span class="text-[10px] text-zinc-500 muted">Play while you wait</span>
+      </div>
+      <div class="flex gap-1.5 overflow-x-auto ns">
+        <button type="button" onclick="expTab('game')" class="tab on shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold border border-white">Games</button>
+        <button type="button" onclick="expTab('fast')" class="tab chip shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold">Fastest</button>
+        <button type="button" onclick="expTab('bullet')" class="tab chip shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold">Bullet</button>
+        <button type="button" onclick="expTab('future')" class="tab chip shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold">Future</button>
+        <button type="button" onclick="expTab('read')" class="tab chip shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold">Stories</button>
+      </div>
+      <div id="exp-game" class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="startGame('signal')" class="panel bg-[#0A0A0A] border border-[#333] rounded-xl p-3 text-left"><div class="text-xl">🚦</div><div class="text-xs font-bold mt-1">Signal Rush</div><div class="text-[9px] text-zinc-500 muted">Tap green · dodge red</div></button>
+        <button type="button" onclick="startGame('coach')" class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-left"><div class="text-xl">🧩</div><div class="text-xs font-bold mt-1">Coach Sort</div><div class="text-[9px] text-zinc-500 muted">Order the rake</div></button>
+        <button type="button" onclick="startGame('memory')" class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-left"><div class="text-xl">🃏</div><div class="text-xs font-bold mt-1">Station Memory</div><div class="text-[9px] text-zinc-500 muted">Match codes</div></button>
+        <button type="button" onclick="startGame('quiz')" class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-left"><div class="text-xl">❓</div><div class="text-xs font-bold mt-1">Rail Quiz</div><div class="text-[9px] text-zinc-500 muted">Streak · titles</div></button>
+      </div>
+      <div id="exp-fast" class="hidden space-y-2">
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-sm font-bold">1 · Vande Bharat · 180 km/h</div>
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-sm font-bold">2 · Gatimaan · 160 km/h</div>
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-sm font-bold">3 · Shatabdi / Rajdhani</div>
+      </div>
+      <div id="exp-bullet" class="hidden">
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3">
+          <div class="text-xs font-bold">Mumbai–Ahmedabad Bullet</div>
+          <div class="h-2 bg-[#222] rounded-full mt-2 overflow-hidden"><div class="h-full bg-white rounded-full w-2/5"></div></div>
+          <div class="text-[9px] text-zinc-500 muted mt-1">~42% progress</div>
+        </div>
+      </div>
+      <div id="exp-future" class="hidden">
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-[11px] space-y-1.5">
+          <div><b>Kavach</b> — anti-collision</div>
+          <div><b>DFCs</b> — freight corridors</div>
+          <div><b>Stations</b> — 1300+ redevelopment</div>
+        </div>
+      </div>
+      <div id="exp-read" class="hidden space-y-2">
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 cursor-pointer" onclick="toast('Story…')"><div class="text-[9px] text-zinc-500 muted font-bold">5 MIN</div><div class="text-sm font-bold">The night Rajdhani waited</div></div>
+        <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 cursor-pointer" onclick="toast('Story…')"><div class="text-[9px] text-zinc-500 muted font-bold">LORE</div><div class="text-sm font-bold">How WAG-9 hauls 6000t</div></div>
+      </div>
+    </div>
+
+    <!-- FEED -->
+    <div id="t-feed" class="p-4 space-y-3 hidden">
+      <div class="flex justify-between items-center">
+        <h1 class="text-lg font-bold">Feed</h1>
+        <div class="flex gap-1.5">
+          <button type="button" class="text-[9px] bg-white text-black px-2.5 py-1 rounded-lg font-bold">12739</button>
+          <button type="button" class="text-[9px] border border-[#333] text-zinc-400 px-2.5 py-1 rounded-lg">All</button>
+        </div>
+      </div>
+      <div class="flex gap-2 overflow-x-auto ns">
+        <span class="shrink-0 text-[10px] border border-[#333] text-zinc-400 px-2.5 py-1 rounded-full">PF tips</span>
+        <span class="shrink-0 text-[10px] border border-[#333] text-zinc-400 px-2.5 py-1 rounded-full">Food finds</span>
+        <span class="shrink-0 text-[10px] border border-[#333] text-zinc-400 px-2.5 py-1 rounded-full">Delays</span>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 space-y-2">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold">SK</div>
+          <div><div class="text-xs font-semibold">Suresh · C2 · 12739</div><div class="text-[9px] text-zinc-500 muted">2m ago</div></div>
+        </div>
+        <p class="text-[12px] text-zinc-200">When the train hits 120 and the chai doesn’t spill 😂</p>
+        <div class="flex gap-4 text-[11px] text-zinc-500 pt-1 border-t border-[#1A1A1A]">
+          <button type="button">😄 18</button>
+          <button type="button">😂 42</button>
+          <button type="button"><i class="fa-regular fa-comment"></i> 5</button>
+          <button type="button"><i class="fa-solid fa-share"></i></button>
+        </div>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 space-y-2">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-zinc-600 flex items-center justify-center text-[10px] font-bold">RK</div>
+          <div><div class="text-xs font-semibold">Ravi · Golconda Exp</div><div class="text-[9px] text-zinc-500 muted">1h ago</div></div>
+        </div>
+        <p class="text-[12px] text-zinc-200">Golconda gang in S5 — AC vs open window debate 😅</p>
+        <div class="flex gap-4 text-[11px] text-zinc-500 pt-1 border-t border-[#1A1A1A]">
+          <button type="button">😂 21</button>
+          <button type="button"><i class="fa-regular fa-comment"></i> 8</button>
+          <button type="button"><i class="fa-solid fa-share"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ME -->
+    <div id="t-me" class="p-4 space-y-3 hidden">
+      <div class="text-center">
+        <div class="w-14 h-14 mx-auto rounded-full bg-white text-black flex items-center justify-center text-xl font-bold mb-1">J</div>
+        <div class="font-bold">Jayanth Kumar</div>
+        <div class="text-[11px] text-zinc-500 muted">+91 98765 43210 · Lvl 9</div>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 space-y-2">
+        <div class="text-[10px] text-zinc-500 muted font-medium flex justify-between"><span>PROFILE</span><button type="button" onclick="toast('Saved')" class="text-[10px] font-bold">Save</button></div>
+        <input value="Jayanth Kumar" class="w-full bg-black border border-[#222] rounded-lg px-3 py-2 text-xs outline-none">
+        <input value="12-3 Patancheru Hyd 502319" class="w-full bg-black border border-[#222] rounded-lg px-3 py-2 text-xs outline-none">
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 space-y-1.5">
+        <div class="text-[10px] text-zinc-500 muted font-medium flex justify-between"><span>SAVED PASSENGERS</span><button type="button" class="text-[10px] font-bold">+ Add</button></div>
+        <div class="text-xs">Jayanth · Self · Default</div>
+        <div class="text-xs">Priya · Wife</div>
+        <div class="text-xs">Arjun · Son (5)</div>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 space-y-1.5">
+        <div class="text-[10px] text-zinc-500 muted font-medium">BILLS & INVOICES</div>
+        <div class="flex justify-between text-xs"><span>RX-849201 · 10 Oct</span><button type="button" onclick="toast('PDF')" class="underline">PDF</button></div>
+      </div>
+      <div class="panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3">
+        <div class="text-[10px] text-zinc-500 muted mb-1.5">RIDE PREFERENCE</div>
+        <div class="flex gap-1.5">
+          <button type="button" class="chip flex-1 py-1.5 rounded-lg text-[10px] font-bold">Bike</button>
+          <button type="button" class="chip on flex-1 py-1.5 rounded-lg text-[10px] font-bold">Auto</button>
+          <button type="button" class="chip flex-1 py-1.5 rounded-lg text-[10px] font-bold">Cab</button>
+        </div>
+      </div>
+      <button type="button" onclick="toast('Support')" class="w-full panel bg-[#0A0A0A] border border-[#222] rounded-xl p-3 text-xs font-semibold text-left"><i class="fa-solid fa-headset text-zinc-500 mr-2"></i>Help & complaints</button>
+      <button type="button" onclick="logout()" class="w-full py-2.5 text-red-400 text-[11px] font-bold">Sign out</button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div id="nav" class="nav-bar absolute bottom-0 inset-x-0 h-[56px] bg-black/95 backdrop-blur border-t border-[#1A1A1A] flex justify-around items-center z-40 hidden">
+    <button type="button" onclick="go('plan')" class="nb text-white flex flex-col items-center w-11"><i class="fa-solid fa-compass"></i><span class="text-[8px] mt-0.5">Plan</span></button>
+    <button type="button" onclick="go('live')" class="nb text-zinc-500 flex flex-col items-center w-11"><i class="fa-solid fa-satellite-dish"></i><span class="text-[8px] mt-0.5">Live</span></button>
+    <button type="button" onclick="go('explore')" class="nb text-zinc-500 flex flex-col items-center w-11"><i class="fa-solid fa-gamepad"></i><span class="text-[8px] mt-0.5">Explore</span></button>
+    <button type="button" onclick="go('feed')" class="nb text-zinc-500 flex flex-col items-center w-11"><i class="fa-solid fa-comments"></i><span class="text-[8px] mt-0.5">Feed</span></button>
+    <button type="button" onclick="go('me')" class="nb text-zinc-500 flex flex-col items-center w-11"><i class="fa-solid fa-user"></i><span class="text-[8px] mt-0.5">Me</span></button>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameOverlay" class="absolute inset-0 z-50 bg-black flex-col items-center justify-center p-6" style="display:none">
+    <div class="absolute top-4 left-4"><div class="logo-mark logo-dark">RX</div></div>
+    <div class="text-sm font-bold mb-1" id="gTitle">Game</div>
+    <div class="text-4xl font-black mb-1" id="gScore">0</div>
+    <div class="text-[10px] text-zinc-500 mb-6" id="gHint"></div>
+    <div id="gArea" class="mb-6"></div>
+    <button type="button" onclick="endGame()" class="text-zinc-500 text-xs">End · keep XP</button>
+  </div>
+
+  <!-- PAY -->
+  <div id="paySheet" class="absolute inset-0 z-50 bg-black/90" style="display:none">
+    <div class="absolute bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-[#222] rounded-t-2xl p-5 space-y-3">
+      <div class="flex justify-between items-center">
+        <div class="logo-mark logo-dark">RX</div>
+        <div class="text-sm font-bold">Pay · invoice after</div>
+      </div>
+      <div class="grid grid-cols-4 gap-2">
+        <button type="button" onclick="selPay(this)" class="pay on py-3 rounded-xl border text-[10px] font-bold bg-white text-black border-white">GPay</button>
+        <button type="button" onclick="selPay(this)" class="pay py-3 rounded-xl border border-[#333] text-[10px] font-bold text-zinc-400">Apple</button>
+        <button type="button" onclick="selPay(this)" class="pay py-3 rounded-xl border border-[#333] text-[10px] font-bold text-zinc-400">RailX</button>
+        <button type="button" onclick="selPay(this)" class="pay py-3 rounded-xl border border-[#333] text-[10px] font-bold text-zinc-400">Card</button>
+      </div>
+      <button type="button" onclick="confirmPay()" class="w-full py-3.5 bg-white text-black font-bold rounded-xl text-sm">Pay now</button>
+      <button type="button" onclick="closePay()" class="w-full py-1.5 text-zinc-500 text-xs">Cancel</button>
+    </div>
+  </div>
+
+  <div id="toast" class="absolute top-12 left-3 right-3 bg-white text-black p-2.5 rounded-xl text-[11px] font-semibold flex items-center gap-2 -translate-y-24 opacity-0 transition-all z-[60] shadow-lg">
+    <i class="fa-solid fa-circle-check"></i><span id="tm">Done</span>
+  </div>
+</div>
+
+<script>
+function showReg() {
+  document.getElementById('screenHero').classList.remove('active');
+  document.getElementById('screenReg').classList.add('active');
+}
+function showHero() {
+  document.getElementById('screenReg').classList.remove('active');
+  document.getElementById('screenHero').classList.add('active');
+}
+function pickGroup(el, group) {
+  const sel = group === 'persona' ? '.persona' : '#screenReg .veh';
+  document.querySelectorAll(sel).forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+function pickSibling(el) {
+  el.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+function enterApp() {
+  document.getElementById('onboard').style.display = 'none';
+  document.getElementById('main').classList.remove('hidden');
+  document.getElementById('nav').classList.remove('hidden');
+  toast('Welcome to RailX');
+}
+function logout() {
+  document.getElementById('onboard').style.display = 'block';
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('nav').classList.add('hidden');
+  showHero();
+}
+function toggleTheme() {
+  const html = document.documentElement;
+  html.classList.toggle('light');
+  html.classList.toggle('dark');
+  const light = html.classList.contains('light');
+  const logo = document.getElementById('headerLogo');
+  logo.className = 'logo-mark ' + (light ? 'logo-light' : 'logo-dark');
+  document.querySelectorAll('.logo-mark').forEach(el => {
+    el.className = 'logo-mark ' + (light ? 'logo-light' : 'logo-dark');
+  });
+  toast(light ? 'Light mode' : 'Dark mode');
+}
+function setMode(m) {
+  document.querySelectorAll('.mode').forEach((b, i) => {
+    const ids = ['choose', 'ai', 'pro'];
+    const on = ids[i] === m;
+    b.classList.toggle('on', on);
+    b.classList.toggle('chip', !on);
+  });
+  ['choose', 'ai', 'pro'].forEach(x => {
+    const p = document.getElementById('panel-' + x);
+    if (p) p.classList.toggle('hidden', x !== m);
+  });
+}
+function setCls(el) {
+  document.querySelectorAll('.cls').forEach(c => { c.classList.remove('on'); c.classList.add('chip'); });
+  el.classList.add('on');
+  el.classList.remove('chip');
+}
+function go(n) {
+  ['plan', 'live', 'explore', 'feed', 'me'].forEach(t => document.getElementById('t-' + t).classList.add('hidden'));
+  document.getElementById('t-' + n).classList.remove('hidden');
+  const map = { plan: 0, live: 1, explore: 2, feed: 3, me: 4 };
+  document.querySelectorAll('.nb').forEach((b, i) => {
+    b.classList.toggle('text-white', i === map[n]);
+    b.classList.toggle('text-zinc-500', i !== map[n]);
+  });
+}
+function expTab(id) {
+  ['game', 'fast', 'bullet', 'future', 'read'].forEach(t => {
+    const e = document.getElementById('exp-' + t);
+    if (e) e.classList.add('hidden');
+  });
+  const p = document.getElementById('exp-' + id);
+  if (p) p.classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(b => { b.classList.remove('on'); b.classList.add('chip'); });
+  if (event && event.target) {
+    event.target.classList.add('on');
+    event.target.classList.remove('chip');
+  }
+}
+function openPay() { document.getElementById('paySheet').style.display = 'block'; }
+function closePay() { document.getElementById('paySheet').style.display = 'none'; }
+function selPay(el) {
+  document.querySelectorAll('.pay').forEach(b => {
+    b.classList.remove('on', 'bg-white', 'text-black', 'border-white');
+    b.classList.add('text-zinc-400', 'border-[#333]');
+    b.style.background = '';
+    b.style.color = '';
+  });
+  el.classList.add('on', 'bg-white', 'text-black', 'border-white');
+  el.style.background = '#fff';
+  el.style.color = '#000';
+}
+function confirmPay() { closePay(); toast('Paid · invoice saved'); go('live'); }
+
+let gScore = 0;
+function startGame(type) {
+  gScore = 0;
+  const o = document.getElementById('gameOverlay');
+  const area = document.getElementById('gArea');
+  document.getElementById('gScore').textContent = '0';
+  area.innerHTML = '';
+  o.style.display = 'flex';
+  if (type === 'signal') {
+    document.getElementById('gTitle').textContent = 'Signal Rush';
+    document.getElementById('gHint').textContent = 'Tap GREEN · avoid RED';
+    area.innerHTML = '<div class="flex gap-6"><button type="button" onclick="gAdd(50)" class="w-20 h-20 rounded-full bg-emerald-500 text-3xl">🟢</button><button type="button" onclick="gAdd(-30)" class="w-20 h-20 rounded-full bg-red-500 text-3xl">🔴</button></div>';
+  } else if (type === 'coach') {
+    document.getElementById('gTitle').textContent = 'Coach Sort';
+    document.getElementById('gHint').textContent = 'Order: Eng → S1 → S2 → S3';
+    window.cOrder = ['Eng', 'S1', 'S2', 'S3'];
+    window.cIdx = 0;
+    area.innerHTML = '<div class="flex flex-wrap gap-2 justify-center">' +
+      ['S2', 'Eng', 'S3', 'S1'].map(c => '<button type="button" onclick="coach(this,\'' + c + '\')" class="px-3 py-2 bg-[#111] border border-[#333] rounded-lg text-xs font-bold">' + c + '</button>').join('') +
+      '</div><div class="text-[10px] text-zinc-500 mt-3" id="cProg">Next: Eng</div>';
+  } else if (type === 'memory') {
+    document.getElementById('gTitle').textContent = 'Station Memory';
+    document.getElementById('gHint').textContent = 'Match pairs';
+    window.memFirst = null;
+    area.innerHTML = '<div class="grid grid-cols-3 gap-2">' +
+      ['SC', 'BZA', 'LPI', 'SC', 'NDLS', 'BZA'].map(c => '<button type="button" data-c="' + c + '" onclick="mem(this)" class="w-14 h-14 bg-[#111] border border-[#333] rounded-xl text-xs font-bold">?</button>').join('') +
+      '</div>';
+  } else {
+    document.getElementById('gTitle').textContent = 'Rail Quiz';
+    document.getElementById('gHint').textContent = 'Vande Bharat design speed?';
+    area.innerHTML = '<div class="flex flex-col gap-2 w-48"><button type="button" onclick="gAdd(100);toast(\'Correct!\')" class="py-2.5 bg-white text-black rounded-xl text-xs font-bold">180 km/h</button><button type="button" onclick="toast(\'Try again\')" class="py-2.5 bg-[#111] border border-[#333] rounded-xl text-xs font-bold">160 km/h</button></div>';
+  }
+}
+function gAdd(n) {
+  gScore = Math.max(0, gScore + n);
+  document.getElementById('gScore').textContent = gScore;
+  if (n < 0) toast('Red! -30');
+}
+function coach(el, id) {
+  if (id === window.cOrder[window.cIdx]) {
+    el.classList.add('bg-white', 'text-black');
+    window.cIdx++;
+    gScore += 40;
+    document.getElementById('gScore').textContent = gScore;
+    document.getElementById('cProg').textContent = window.cIdx >= 4 ? 'Done!' : 'Next: ' + window.cOrder[window.cIdx];
+  } else toast('Wrong order');
+}
+function mem(el) {
+  if (el.dataset.done) return;
+  el.textContent = el.dataset.c;
+  if (!window.memFirst) { window.memFirst = el; return; }
+  if (window.memFirst !== el && window.memFirst.dataset.c === el.dataset.c) {
+    el.dataset.done = '1';
+    window.memFirst.dataset.done = '1';
+    el.classList.add('bg-white', 'text-black');
+    window.memFirst.classList.add('bg-white', 'text-black');
+    gScore += 30;
+    document.getElementById('gScore').textContent = gScore;
+    window.memFirst = null;
+  } else {
+    const a = window.memFirst;
+    setTimeout(() => { el.textContent = '?'; a.textContent = '?'; }, 400);
+    window.memFirst = null;
+  }
+}
+function endGame() {
+  document.getElementById('gameOverlay').style.display = 'none';
+  toast('+' + Math.max(10, (gScore / 10) | 0) + ' XP');
+}
+function toast(m) {
+  const t = document.getElementById('toast');
+  document.getElementById('tm').textContent = m;
+  t.classList.remove('-translate-y-24', 'opacity-0');
+  setTimeout(() => t.classList.add('-translate-y-24', 'opacity-0'), 2000);
+}
+setInterval(() => {
+  document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+}, 1000);
+</script>
+</body>
+</html>
