@@ -4,17 +4,24 @@ import React from 'react';
  * Minimalist White and Black Line Art Train Engine (Locomotive) Logo
  * Authentic Indian Railways Electric / WAP Locomotive Silhouette
  */
-export default function EngineLineLogo({ className = "w-7 h-7", goldAccent = false }) {
+export default function EngineLineLogo({ className = "w-7 h-7", goldAccent = false, animated = false, speedLines = false }) {
   const strokeColor = goldAccent ? "#D4AF37" : "#FFFFFF";
 
   return (
-    <div className={`relative flex items-center justify-center ${className}`}>
+    <div className={`relative flex items-center justify-center ${animated ? 'train-motion' : ''} ${className}`}>
       <svg
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="w-full h-full"
       >
+        {speedLines && (
+          <g className="train-speed-lines" stroke={strokeColor} strokeWidth="1.3" strokeLinecap="round" opacity="0.8">
+            <path d="M 2 21 H 10" />
+            <path d="M 1 25 H 8" />
+            <path d="M 3 29 H 10" />
+          </g>
+        )}
         {/* Pantograph High-Voltage Line at Top */}
         <path
           d="M 18 6 L 24 11 L 30 6"

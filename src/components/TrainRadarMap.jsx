@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import EngineLineLogo from './EngineLineLogo';
 
-export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood, onOpenData, onToast }) {
+export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood, onOpenData, onOpenEngine, onOpenFeed, onToast }) {
   const [mapMode, setMapMode] = useState('radar'); // 'radar' | 'route'
   const [selectedTrainId, setSelectedTrainId] = useState('12951');
   const [radarZoom, setRadarZoom] = useState(1);
@@ -113,7 +113,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
       {/* Top Map HUD Controls */}
       <div className="absolute top-3 left-3 right-3 z-30 flex justify-between items-center pointer-events-auto">
         <div className="flex items-center space-x-2 bg-black/90 border border-[#222222] px-3 py-1.5 rounded-xl backdrop-blur-md">
-          <EngineLineLogo className="w-5 h-5" />
+          <EngineLineLogo className="w-5 h-5" animated speedLines />
           <span className="text-[11px] font-extrabold font-mono tracking-wider text-white">
             TRAIN RADAR 24
           </span>
@@ -253,7 +253,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
                     : 'bg-black text-white border border-[#333] hover:border-white'
                 }`}
               >
-                <EngineLineLogo className="w-4 h-4" goldAccent={!isSelected} />
+                <EngineLineLogo className="w-4 h-4" goldAccent={!isSelected} animated={isSelected} speedLines={isSelected} />
                 <span className="text-[9px] font-black font-mono ml-1">{tr.number}</span>
               </div>
 
@@ -350,6 +350,21 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
             className="py-3 bg-[#0f0f0f] border border-[#222222] hover:border-white text-white font-bold text-xs rounded-xl active:scale-95 transition"
           >
             ⚡ Data
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenEngine}
+            className="col-span-2 rounded-xl border border-[#222] bg-[#0f0f0f] py-2 text-[10px] font-bold text-zinc-300"
+          >
+            Engine deck
+          </button>
+          <button
+            type="button"
+            onClick={onOpenFeed}
+            className="col-span-2 rounded-xl border border-[#222] bg-[#0f0f0f] py-2 text-[10px] font-bold text-zinc-300"
+          >
+            Commuter feed
           </button>
         </div>
       </div>

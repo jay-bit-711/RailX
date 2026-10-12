@@ -4,7 +4,6 @@ import {
   Camera,
   MapPin,
   Share2,
-  ShieldAlert,
   Flame,
   Award,
   Bell,
@@ -14,7 +13,11 @@ import {
   Coffee,
   CheckCircle2,
   Compass,
-  Radio
+  Radio,
+  ShieldAlert,
+  LifeBuoy,
+  Cog,
+  MessageCircle
 } from 'lucide-react';
 import { CORRIDOR_TRAINS, INITIAL_PASSENGERS, INITIAL_FEEDS } from './data/mockData';
 import EngineLineLogo from './components/EngineLineLogo';
@@ -30,7 +33,10 @@ import FoodOrderSheet from './components/FoodOrderSheet';
 import DataBoosterSheet from './components/DataBoosterSheet';
 import PaymentSheet from './components/PaymentSheet';
 import PhoneAuthModal from './components/PhoneAuthModal';
-import { subscribeToAuth, getUserProfile, signOutUser, demoPassengerSignIn } from './services/authService';
+import { subscribeToAuth, getUserProfile, signOutUser } from './services/authService';
+import { getUserJourneys, updateJourneyStatus } from './services/firestoreService';
+
+const ADDON_PRICES = { 'First mile': 80, 'Station help': 40, Food: 120, Data: 49, 'Last mile': 80 };
 
 export default function App() {
   // Navigation: 'radar' | 'mission' | 'memory' | 'engine' | 'feed' | 'me'
@@ -38,6 +44,9 @@ export default function App() {
   const [timeStr, setTimeStr] = useState('09:45');
   const [userXp, setUserXp] = useState(580); // Level 11
   const [streakDays, setStreakDays] = useState(7);
+  const [journeys, setJourneys] = useState([]);
+  const [activeJourney, setActiveJourney] = useState(null);
+  const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
 
   // Authentication & Profile State
   const [user, setUser] = useState(null);
@@ -51,7 +60,7 @@ export default function App() {
   const [passengers, setPassengers] = useState(INITIAL_PASSENGERS);
   const [ridePref, setRidePref] = useState('Auto');
   const [selectedCls, setSelectedCls] = useState('3A');
-  const [activeAddons, setActiveAddons] = useState(['First mile', 'Food']);
+  const [activeAddons, setActiveAddons] = useState([]);
   const [bookingMode, setBookingMode] = useState('plan');
   const [selectedTrain, setSelectedTrain] = useState(CORRIDOR_TRAINS[0]);
 
@@ -95,6 +104,23 @@ export default function App() {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    let isCurrent = true;
+    if (user) {
+      getUserJourneys(user.uid).then((savedJourneys) => {
+        if (isCurrent) {
+          setJourneys(savedJourneys);
+          setActiveJourney((current) => current || savedJourneys.find((journey) => journey.status === 'active') || null);
+        }
+      });
+    } else {
+      setJourneys([]);
+    }
+    return () => {
+      isCurrent = false;
+    };
+  }, [user]);
+
   const showToast = (msg) => {
     setToastText(msg);
     setTimeout(() => setToastText(null), 2500);
@@ -125,6 +151,49 @@ export default function App() {
   };
 
   const userLevel = Math.floor(userXp / 50);
+  const bookingTotal = (bookingMode === 'plan' ? Number(selectedTrain?.price || 1245) : 140)
+    + activeAddons.reduce((total, addon) => total + (ADDON_PRICES[addon] || 0), 0);
+  const refreshJourneys = async () => {
+    if (!user) return;
+    setJourneys(await getUserJourneys(user.uid));
+  };
+
+  const activateJourney = async (journey) => {
+    const active = { ...journey, status: 'active' };
+    if (user && journey.id) {
+      try {
+        await updateJourneyStatus(journey.id, 'active');
+        await refreshJourneys();
+      } catch (error) {
+        showToast(`Could not update journey status: ${error.message}`);
+      }
+    }
+    setActiveJourney(active);
+    setJourneys((current) => [active, ...current.filter((item) => item.id !== active.id)]);
+    setActiveTab('mission');
+  };
+
+  const completeJourney = async (ratings) => {
+    const completed = activeJourney;
+    if (user && completed?.id) {
+      try {
+        await updateJourneyStatus(completed.id, 'completed', { ratings });
+      } catch (error) {
+        showToast(`Journey completed here, but status could not sync: ${error.message}`);
+      }
+      await refreshJourneys();
+    }
+    if (completed) {
+      const savedCompleted = { ...completed, status: 'completed', ratings };
+      setJourneys((current) => current.some((item) => item.id === completed.id)
+        ? current.map((item) => item.id === completed.id ? savedCompleted : item)
+        : [savedCompleted, ...current]);
+    }
+    setActiveJourney(null);
+    setUserXp((xp) => xp + 250);
+    setIsLevelUpOpen(true);
+    setActiveTab('mission');
+  };
 
   return (
     <div className="bg-black flex justify-center min-h-screen text-white select-none selection:bg-white selection:text-black font-sans">
@@ -208,6 +277,14 @@ export default function App() {
                   </button>
                 </div>
               </div>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setActiveTab('engine')} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#252525] bg-[#080808] py-2 text-[10px] font-bold text-white">
+                  <Cog className="h-3.5 w-3.5 text-[#D4AF37]" />Engine
+                </button>
+                <button type="button" onClick={() => setActiveTab('feed')} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#252525] bg-[#080808] py-2 text-[10px] font-bold text-white">
+                  <MessageCircle className="h-3.5 w-3.5 text-[#D4AF37]" />Commuter feed
+                </button>
+              </div>
 
               {/* The Interactive Radar Map Component */}
               <TrainRadarMap
@@ -218,6 +295,8 @@ export default function App() {
                 }}
                 onOpenFood={() => setIsFoodSheetOpen(true)}
                 onOpenData={() => setIsDataSheetOpen(true)}
+                onOpenEngine={() => setActiveTab('engine')}
+                onOpenFeed={() => setActiveTab('feed')}
                 onToast={showToast}
               />
             </div>
@@ -339,28 +418,36 @@ export default function App() {
                 onClick={() => setIsPaySheetOpen(true)}
                 className="w-full rounded-xl bg-white py-3.5 text-sm font-extrabold text-black active:scale-[.98]"
               >
-                {bookingMode === 'daily' ? 'Get local / metro pass' : bookingMode === 'quick' ? 'Book unreserved' : `Plan reserved · ₹${selectedTrain.price}`}
+                {bookingMode === 'daily' ? `Get pass · ₹${bookingTotal}` : bookingMode === 'quick' ? `Book unreserved · ₹${bookingTotal}` : `Plan reserved · ₹${bookingTotal}`}
               </button>
               <p className="text-center text-[10px] text-zinc-500">Review details in the next step. No add-on is required.</p>
             </div>
           )}
 
           {/* TAB 2: GAMIFIED MISSION HUB (AIROLI ➔ CONNAUGHT PLACE) */}
-          {activeTab === 'mission' && (
+          <div className={activeTab === 'mission' ? '' : 'hidden'}>
             <GamifiedMissionHub
               onOpenEngineDeck={() => setActiveTab('engine')}
               onOpenRapidAssistance={openAssistance}
               onOpenFamilyShare={() => setIsFamilyShareOpen(true)}
               onOpenFoodSheet={() => setIsFoodSheetOpen(true)}
               onOpenDataSheet={() => setIsDataSheetOpen(true)}
+              onOpenSupport={() => openAssistance('support')}
+              journey={activeJourney}
+              onComplete={completeJourney}
+              onSetRidePref={setRidePref}
+              onTravelAgain={() => setActiveTab('go')}
+              onOpenRadar={() => setActiveTab('radar')}
+              ridePref={ridePref}
               onToast={showToast}
             />
-          )}
+          </div>
 
           {/* TAB 3: AI MEMORY ENGINE ("CRAFTING MEMORIES ON EVERY TRACK") */}
           {activeTab === 'memory' && (
             <AiMemoryEngine
               user={user}
+              journeys={journeys}
               onToast={showToast}
             />
           )}
@@ -461,6 +548,16 @@ export default function App() {
           {/* TAB 6: ME / PASSENGER PROFILE */}
           {activeTab === 'me' && (
             <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <button type="button" onClick={() => openAssistance('sos')} className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]">
+                  <ShieldAlert className="h-6 w-6" />
+                  <span className="text-sm font-extrabold">SOS</span>
+                </button>
+                <button type="button" onClick={() => openAssistance('support')} className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-white bg-white text-black">
+                  <LifeBuoy className="h-6 w-6" />
+                  <span className="text-sm font-extrabold">Support</span>
+                </button>
+              </div>
               <div className="text-center pt-2">
                 <div className="w-14 h-14 mx-auto rounded-full bg-white text-black font-extrabold text-xl flex items-center justify-center mb-1">
                   J
@@ -489,6 +586,40 @@ export default function App() {
                 <div className="text-zinc-400">Arjun · Son (Age 5)</div>
               </div>
 
+              <div className="rounded-xl border border-[#222] bg-[#080808] p-3 space-y-3 text-xs">
+                <h2 className="font-bold">Journeys</h2>
+                <div>
+                  <div className="mb-1 text-[9px] font-bold uppercase tracking-wide text-zinc-500">Upcoming</div>
+                  {journeys.filter((journey) => journey.status === 'planned' || journey.status === 'active').length === 0
+                    ? <p className="text-zinc-500">No upcoming journeys</p>
+                    : journeys.filter((journey) => journey.status === 'planned' || journey.status === 'active').map((journey) => <div key={journey.id} className="flex justify-between border-t border-[#222] py-2"><span>{journey.trainName} · {journey.fromStation} → {journey.toStation}</span><span className="text-[#D4AF37]">{journey.journeyDate}</span></div>)}
+                </div>
+                <div>
+                  <div className="mb-1 text-[9px] font-bold uppercase tracking-wide text-zinc-500">Completed</div>
+                  {journeys.filter((journey) => journey.status === 'completed').length === 0
+                    ? <p className="text-zinc-500">No completed journeys</p>
+                    : journeys.filter((journey) => journey.status === 'completed').map((journey) => <div key={journey.id} className="flex justify-between border-t border-[#222] py-2"><span>{journey.trainName} · {journey.fromStation} → {journey.toStation}</span><span>{journey.journeyDate}</span></div>)}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#222] bg-[#080808] p-3 space-y-2 text-xs">
+                <h2 className="font-bold">Bills & invoices</h2>
+                {[
+                  { id: 'RX-2026-1048', label: 'Rail ticket', amount: '₹2,150' },
+                  { id: 'RX-2026-1032', label: 'Data booster', amount: '₹49' },
+                  { id: 'RX-2026-1019', label: 'Food order', amount: '₹120' }
+                ].map((bill) => <div key={bill.id} className="flex justify-between border-t border-[#222] py-2"><span><b className="text-white">{bill.id}</b><span className="ml-2 text-zinc-500">{bill.label}</span></span><span className="text-[#D4AF37]">{bill.amount}</span></div>)}
+                <div className="flex justify-between border-t border-[#222] pt-2"><span>Refunds</span><span className="text-zinc-400">No pending refunds</span></div>
+              </div>
+
+              <div className="rounded-xl border border-[#222] bg-[#080808] p-3 space-y-2 text-xs">
+                <h2 className="font-bold">Edit preferences</h2>
+                <label className="block text-[10px] text-zinc-400" htmlFor="ride-pref">Default ride</label>
+                <select id="ride-pref" value={ridePref} onChange={(event) => setRidePref(event.target.value)} className="w-full rounded-lg border border-[#333] bg-black px-3 py-2 text-white">
+                  {['Bike', 'Auto', 'Cab'].map((preference) => <option key={preference}>{preference}</option>)}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <button
                   type="button"
@@ -497,22 +628,6 @@ export default function App() {
                 >
                   <div className="font-bold text-white">Family Link</div>
                   <div className="text-[9px] text-zinc-500">Rapido-style GPS</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openAssistance('sos')}
-                  className="p-3 bg-[#0a0a0a] border border-[#222] hover:border-[#D4AF37] rounded-xl text-left"
-                >
-                  <div className="font-bold text-white">SOS</div>
-                  <div className="text-[9px] text-zinc-500">Emergency help</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openAssistance('support')}
-                  className="p-3 bg-[#0a0a0a] border border-[#222] hover:border-white rounded-xl text-left"
-                >
-                  <div className="font-bold text-white">Support</div>
-                  <div className="text-[9px] text-zinc-500">Rail help & contacts</div>
                 </button>
                 <button type="button" onClick={() => setIsPhoneModalOpen(true)} className="p-3 bg-[#0a0a0a] border border-[#222] hover:border-white rounded-xl text-left">
                   <div className="font-bold text-white">Phone Auth</div>
@@ -541,12 +656,10 @@ export default function App() {
           className="absolute bottom-0 inset-x-0 h-[60px] bg-black/95 backdrop-blur border-t border-[#1a1a1a] flex justify-around items-center z-40"
         >
           {[
-            { id: 'radar', label: 'Radar 24', icon: <Radio className="w-4 h-4" /> },
+            { id: 'radar', label: 'Radar', icon: <Radio className="w-4 h-4" /> },
             { id: 'go', label: 'Go', icon: <MapPin className="w-4 h-4" /> },
             { id: 'mission', label: 'Ride', icon: <Zap className="w-4 h-4" /> },
             { id: 'memory', label: 'Memories', icon: <Sparkles className="w-4 h-4" /> },
-            { id: 'engine', label: 'Engine', icon: <EngineLineLogo className="w-4 h-4" /> },
-            { id: 'feed', label: 'Feed', icon: <Coffee className="w-4 h-4" /> },
             { id: 'me', label: 'Me', icon: <Award className="w-4 h-4" /> }
           ].map((item) => {
             const isActive = activeTab === item.id;
@@ -643,9 +756,7 @@ export default function App() {
           bookingMode={bookingMode}
           onToggleAddon={(addon) => setActiveAddons((current) => current.includes(addon) ? current.filter((item) => item !== addon) : [...current, addon])}
           onAddAllDoorToDoor={() => setActiveAddons(['First mile', 'Station help', 'Food', 'Data', 'Last mile'])}
-          onPaymentSuccess={() => {
-            setActiveTab('mission');
-          }}
+          onPaymentSuccess={activateJourney}
           onToast={showToast}
         />
 
@@ -658,6 +769,20 @@ export default function App() {
             showToast('Firebase Phone Verified');
           }}
         />
+
+        {isLevelUpOpen && (
+          <div className="absolute inset-0 z-[55] flex items-center justify-center bg-black/90 p-5" role="dialog" aria-modal="true" aria-labelledby="level-up-title">
+            <div className="level-up-card relative w-full max-w-sm overflow-hidden rounded-3xl border border-[#D4AF37] bg-[#080808] p-6 text-center">
+              <div className="confetti-field" aria-hidden="true">{Array.from({ length: 24 }, (_, index) => <span key={index} style={{ left: `${(index * 37 + 9) % 100}%`, animationDelay: `${index * -0.11}s`, '--confetti-drift': `${index % 2 ? 22 : -22}px` }} />)}</div>
+              <Sparkles className="mx-auto h-10 w-10 text-[#D4AF37]" />
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]">Journey complete</p>
+              <h2 id="level-up-title" className="mt-2 text-2xl font-black">Level up · {userLevel}</h2>
+              <p className="mt-2 text-xs text-zinc-300">+250 XP · Your active ride is cleared.</p>
+              <button type="button" onClick={() => { setIsLevelUpOpen(false); setActiveTab('go'); }} className="mt-5 w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Travel again · Go</button>
+              <button type="button" onClick={() => { setIsLevelUpOpen(false); setActiveTab('radar'); }} className="mt-2 w-full rounded-xl border border-[#333] py-3 text-xs font-bold text-white">Open Radar</button>
+            </div>
+          </div>
+        )}
 
         {/* Toast Alert */}
         <div

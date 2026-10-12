@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { createJourney } from '../services/firestoreService';
 
+const ADDON_PRICES = {
+  'First mile': 80,
+  'Station help': 40,
+  Food: 120,
+  Data: 49,
+  'Last mile': 80
+};
+
 export default function PaymentSheet({
   isOpen,
   onClose,
@@ -24,6 +32,11 @@ export default function PaymentSheet({
 
   if (!isOpen) return null;
 
+  const baseTrainFare = bookingMode === 'plan' ? Number(train?.price || 1245) : 140;
+  const selectedAddons = addons.filter((addon) => Object.hasOwn(ADDON_PRICES, addon));
+  const addonTotal = selectedAddons.reduce((total, addon) => total + ADDON_PRICES[addon], 0);
+  const totalPrice = baseTrainFare + addonTotal;
+
   const handlePay = async () => {
     setIsProcessing(true);
     try {
@@ -46,15 +59,14 @@ export default function PaymentSheet({
           : bookingMode === 'quick'
             ? `Gate 1 -> PF ${train?.platform?.replace('PF ', '') || '4'} -> General coach marker`
             : `Gate 1 -> PF ${train?.platform?.replace('PF ', '') || '4'} -> Coach ${selectedClass} near middle FOB`,
-        addons
+        addons: selectedAddons,
+        totalPrice
       };
 
-      if (user) {
-        await createJourney(user.uid, journeyPayload);
-      }
+      const journeyId = user ? await createJourney(user.uid, journeyPayload) : `demo-${Date.now()}`;
 
       onToast(user ? 'Booking saved · Ride opened' : 'Demo booking ready · Ride opened');
-      onPaymentSuccess(journeyPayload);
+      onPaymentSuccess({ ...journeyPayload, id: journeyId });
       onClose();
     } catch (err) {
       console.error(err);
@@ -91,8 +103,8 @@ export default function PaymentSheet({
         {/* Trip Mini Summary */}
         <div className="p-3 bg-black border border-[#222] rounded-xl text-xs space-y-1">
           <div className="flex justify-between font-bold text-white">
-            <span>{train?.name || '12739 Vande Bharat'}</span>
-            <span className="font-mono text-[#D4AF37]">₹{train?.price || 1245}</span>
+            <span>{bookingMode === 'daily' ? 'Local / Metro Pass' : bookingMode === 'quick' ? 'Unreserved ticket' : train?.name || '12739 Vande Bharat'}</span>
+            <span className="font-mono text-[#D4AF37]">₹{baseTrainFare}</span>
           </div>
           <div className="text-[10px] text-zinc-400 flex justify-between">
             <span>{origin} ➔ {destination}</span>
@@ -100,6 +112,22 @@ export default function PaymentSheet({
           </div>
           <div className="text-[9px] text-zinc-500">
             Ride: {ridePref} • {addons.length ? addons.join(', ') : 'No add-ons'}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-[#222] bg-black p-3 text-xs">
+          <div className="flex justify-between py-1 text-zinc-300">
+            <span>{bookingMode === 'plan' ? 'Train fare' : bookingMode === 'quick' ? 'Unreserved fare' : 'Daily local / metro pass'}</span>
+            <span>₹{baseTrainFare}</span>
+          </div>
+          {selectedAddons.map((addon) => (
+            <div key={addon} className="flex justify-between py-1 text-zinc-400">
+              <span>{addon}</span><span>₹{ADDON_PRICES[addon]}</span>
+            </div>
+          ))}
+          {selectedAddons.length === 0 && <div className="py-1 text-zinc-500">No add-ons selected</div>}
+          <div className="mt-1 flex justify-between border-t border-[#222] pt-2 text-sm font-extrabold">
+            <span>Total</span><span className="text-[#D4AF37]">₹{totalPrice}</span>
           </div>
         </div>
 
@@ -155,7 +183,7 @@ export default function PaymentSheet({
           disabled={isProcessing}
           className="w-full py-3.5 bg-white text-black font-bold rounded-xl text-sm active:scale-[.98] transition disabled:opacity-50"
         >
-          {isProcessing ? 'Saving booking...' : `${bookingMode === 'daily' ? 'Get pass' : 'Book'} · ₹${train?.price || 1245} with ${payMethod}`}
+          {isProcessing ? 'Saving booking...' : `${bookingMode === 'daily' ? 'Get pass' : 'Book'} · ₹${totalPrice} with ${payMethod}`}
         </button>
 
         <button

@@ -70,7 +70,7 @@ export default function RapidAssistanceModal({ isOpen, onClose, onToast, initial
               <span>Railway emergency</span>
             </div>
             <p className="text-[11px] text-zinc-400 leading-relaxed">
-              For urgent railway assistance, call the railway helpline. This app does not send an SOS automatically.
+              Does not auto-dispatch emergency services. For urgent railway assistance, call the railway helpline.
             </p>
             <a href="tel:139" className="block w-full rounded-xl bg-[#D4AF37] py-3 text-center text-xs font-black uppercase tracking-wider text-black active:scale-95 transition">
               Call 139 for help

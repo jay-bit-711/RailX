@@ -3,11 +3,58 @@ import { Camera, Sparkles, Award, BookmarkPlus, Share2, CheckCircle2, Heart } fr
 import EngineLineLogo from './EngineLineLogo';
 import { createJourneyMemory } from '../services/firestoreService';
 
-export default function AiMemoryEngine({ user, onToast }) {
+function getJourneyDate(journey) {
+  if (journey.journeyDate) {
+    const date = new Date(`${journey.journeyDate}T00:00:00`);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+  if (journey.createdAt?.toDate) return journey.createdAt.toDate();
+  return null;
+}
+
+function getWeekStart(date) {
+  const weekStart = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  weekStart.setUTCDate(weekStart.getUTCDate() - ((weekStart.getUTCDay() + 6) % 7));
+  return weekStart.getTime();
+}
+
+function getWeekStreak(dates) {
+  const weeks = new Set(dates.map((date) => getWeekStart(date)));
+  let week = getWeekStart(new Date());
+  let streak = 0;
+  while (weeks.has(week)) {
+    streak += 1;
+    week -= 7 * 24 * 60 * 60 * 1000;
+  }
+  return streak;
+}
+
+function getMonthStreak(dates) {
+  const months = new Set(dates.map((date) => date.getFullYear() * 12 + date.getMonth()));
+  let month = new Date().getFullYear() * 12 + new Date().getMonth();
+  let streak = 0;
+  while (months.has(month)) {
+    streak += 1;
+    month -= 1;
+  }
+  return streak;
+}
+
+export default function AiMemoryEngine({ user, journeys = [], onToast }) {
   const [photoStory, setPhotoStory] = useState('');
   const [memoryTitle, setMemoryTitle] = useState('Chambal Canyon Sunset on Rajdhani');
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [savedBadge, setSavedBadge] = useState(false);
+  const journeyDates = journeys.map(getJourneyDate).filter(Boolean);
+  const thisYear = new Date().getFullYear();
+  const trainsThisYear = new Set(
+    journeys
+      .filter((journey) => getJourneyDate(journey)?.getFullYear() === thisYear)
+      .map((journey) => journey.trainNumber)
+      .filter(Boolean)
+  ).size;
+  const totalKm = journeys.reduce((sum, journey) => sum + (Number(journey.distanceKm) || 0), 0);
+  const hasTrackedDistance = journeys.some((journey) => Number(journey.distanceKm) > 0);
 
   const MILESTONE_STAMPS = [
     {
@@ -79,6 +126,21 @@ export default function AiMemoryEngine({ user, onToast }) {
           </p>
         </div>
       </div>
+
+      <section className="grid grid-cols-2 gap-2" aria-label="Journey statistics">
+        {[
+          ['Total km by train', hasTrackedDistance ? `${totalKm.toLocaleString('en-GB')} km` : 'Not tracked'],
+          ['Total journeys', journeys.length],
+          ['Trains this year', trainsThisYear],
+          ['Week streak', `${getWeekStreak(journeyDates)} wk`],
+          ['Month streak', `${getMonthStreak(journeyDates)} mo`]
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-[#222] bg-[#080808] p-3">
+            <div className="text-[9px] uppercase tracking-wide text-zinc-500">{label}</div>
+            <div className="mt-1 text-base font-extrabold text-[#D4AF37]">{value}</div>
+          </div>
+        ))}
+      </section>
 
       {/* Official AI Speed & Journey Certificate */}
       <div className="panel bg-[#050505] border border-[#222222] rounded-2xl p-5 space-y-4 text-center relative overflow-hidden">

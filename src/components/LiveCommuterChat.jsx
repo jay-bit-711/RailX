@@ -119,7 +119,7 @@ export default function LiveCommuterChat({ user, onRequireAuth, userProfile }) {
                 <div className="flex items-center space-x-2 mb-1 px-1">
                   <span className="text-[11px] font-bold text-amber-400">{msg.senderName}</span>
                   <span className="text-[10px] text-slate-400">
-                    {msg.time || (msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Live')}
+                    {msg.time || (msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) : 'Live')}
                   </span>
                 </div>
                 <div

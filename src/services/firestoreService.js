@@ -46,6 +46,7 @@ export async function createJourney(uid, journeyData) {
     travelType: journeyData.travelType || "reserved", // 'reserved' | 'unreserved' | 'daily_commute'
     platformGuidance: journeyData.platformGuidance || "Entry Gate 2, Escalator to PF 3, Coach Position 12th from Engine",
     addons: journeyData.addons || [],
+    totalPrice: journeyData.totalPrice || 0,
     status: "planned", // 'planned' | 'active' | 'completed' | 'cancelled'
     createdAt: serverTimestamp()
   });
@@ -63,9 +64,9 @@ export async function getUserJourneys(uid) {
   }
 }
 
-export async function updateJourneyStatus(journeyId, status) {
+export async function updateJourneyStatus(journeyId, status, additionalFields = {}) {
   const ref = doc(db, "journeys", journeyId);
-  await updateDoc(ref, { status });
+  await updateDoc(ref, { status, ...additionalFields });
 }
 
 /* -------------------------------------------------------------------------- */

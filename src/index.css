@@ -148,6 +148,76 @@ body {
   border: 1px solid #1F1F1F;
 }
 
+@keyframes compassPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.18); }
+  50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+}
+
+.compass-pulse {
+  animation: compassPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes compassPoint {
+  0%, 100% { transform: rotate(var(--compass-rotation)) scale(1); }
+  50% { transform: rotate(var(--compass-rotation)) scale(1.12); }
+}
+
+.compass-arrow-motion {
+  animation: compassPoint 0.7s ease-in-out infinite;
+}
+
+@keyframes expressMotion {
+  0%, 100% { transform: translate(-1px, 1px) rotate(-16deg); }
+  50% { transform: translate(2px, -1px) rotate(-16deg); }
+}
+
+.train-motion {
+  animation: expressMotion 0.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.train-speed-lines {
+  animation: speedLines 0.4s steps(2, end) infinite;
+}
+
+@keyframes speedLines {
+  0% { opacity: 0.3; transform: translateX(2px); }
+  100% { opacity: 0.9; transform: translateX(-2px); }
+}
+
+@keyframes confettiFall {
+  0% { transform: translate3d(0, -110%, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(var(--confetti-drift), 420px, 0) rotate(540deg); opacity: 0; }
+}
+
+.confetti-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-field span {
+  position: absolute;
+  top: -12px;
+  width: 5px;
+  height: 9px;
+  background: #D4AF37;
+  animation: confettiFall 2.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compass-pulse,
+  .compass-arrow-motion,
+  .train-motion,
+  .train-speed-lines,
+  .confetti-field span {
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
+  }
+}
+
 /* Keep status colors within RailX's black, white and gold palette. */
 [class*="text-emerald-"],
 [class*="text-green-"],
