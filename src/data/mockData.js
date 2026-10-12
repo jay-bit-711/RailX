@@ -125,5 +125,5 @@ export const DATA_BOOSTERS = [
   { id: "db1", operator: "Jio", data: "1 GB Booster", price: 19, desc: "Instant PNR & WhatsApp check" },
   { id: "db2", operator: "Jio", data: "3 GB Booster", price: 39, desc: "Watch 2 movies while traveling" },
   { id: "db3", operator: "Airtel", data: "2 GB Booster", price: 33, desc: "High-speed rail corridor 4G" },
-  { id: "db4", operator: "Vi", data: "Night Pack 5GB", price: 58, desc: "Midnight to 6 AM surfing" }
+  { id: "db4", operator: "Vi", data: "Night Pack 5GB", price: 58, desc: "00:00 to 06:00 data" }
 ];

@@ -51,7 +51,8 @@ export default function App() {
   const [passengers, setPassengers] = useState(INITIAL_PASSENGERS);
   const [ridePref, setRidePref] = useState('Auto');
   const [selectedCls, setSelectedCls] = useState('3A');
-  const [activeAddons, setActiveAddons] = useState(['1st mi', 'Food']);
+  const [activeAddons, setActiveAddons] = useState(['First mile', 'Food']);
+  const [bookingMode, setBookingMode] = useState('plan');
   const [selectedTrain, setSelectedTrain] = useState(CORRIDOR_TRAINS[0]);
 
   // Modals & Bottom Sheets
@@ -62,6 +63,7 @@ export default function App() {
   const [isDataSheetOpen, setIsDataSheetOpen] = useState(false);
   const [isAssistanceOpen, setIsAssistanceOpen] = useState(false);
   const [isFamilyShareOpen, setIsFamilyShareOpen] = useState(false);
+  const [assistanceSection, setAssistanceSection] = useState('sos');
 
   // Feed State
   const [feedItems, setFeedItems] = useState(INITIAL_FEEDS);
@@ -96,6 +98,11 @@ export default function App() {
   const showToast = (msg) => {
     setToastText(msg);
     setTimeout(() => setToastText(null), 2500);
+  };
+
+  const openAssistance = (section = 'sos') => {
+    setAssistanceSection(section);
+    setIsAssistanceOpen(true);
   };
 
   const handleGpsDetect = () => {
@@ -178,7 +185,7 @@ export default function App() {
                     </span>
                   </h1>
                   <p className="text-[10px] text-zinc-500 font-mono">
-                    FlightRadar24 & Google Maps telemetry with 1-tap payments
+                    Live trains · simple booking
                   </p>
                 </div>
 
@@ -207,7 +214,7 @@ export default function App() {
                 onSelectTrain={(tr) => setSelectedTrain(tr)}
                 onOpenPayment={(tr) => {
                   setSelectedTrain(tr);
-                  setIsPaySheetOpen(true);
+                  setActiveTab('go');
                 }}
                 onOpenFood={() => setIsFoodSheetOpen(true)}
                 onOpenData={() => setIsDataSheetOpen(true)}
@@ -216,13 +223,136 @@ export default function App() {
             </div>
           )}
 
+          {activeTab === 'go' && (
+            <div className="space-y-4 animate-in fade-in">
+              <header>
+                <h1 className="text-lg font-extrabold">Go somewhere</h1>
+                <p className="text-xs text-zinc-400">Choose how you travel.</p>
+              </header>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'daily', label: 'Daily', detail: 'Local · Metro' },
+                  { id: 'quick', label: 'Quick', detail: 'Unreserved' },
+                  { id: 'plan', label: 'Plan', detail: 'Reserved' }
+                ].map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    aria-pressed={bookingMode === mode.id}
+                    onClick={() => {
+                      setBookingMode(mode.id);
+                      setSelectedCls(mode.id === 'quick' ? 'GN' : mode.id === 'daily' ? 'Local' : '3A');
+                    }}
+                    className={`min-h-[76px] rounded-xl border p-2 text-left transition ${
+                      bookingMode === mode.id
+                        ? 'border-[#D4AF37] bg-[#D4AF37]/10'
+                        : 'border-[#252525] bg-[#080808]'
+                    }`}
+                  >
+                    <span className="block text-sm font-bold">{mode.label}</span>
+                    <span className="mt-1 block text-[10px] text-zinc-400">{mode.detail}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 px-3 py-2.5 text-[11px] text-zinc-300">
+                {bookingMode === 'daily' && 'Local / metro pass · flexible daily travel, no reserved seat.'}
+                {bookingMode === 'quick' && 'Unreserved ticket · general coach, no seat selection.'}
+                {bookingMode === 'plan' && `${selectedTrain.name} · reserved seat · ₹${selectedTrain.price}`}
+              </div>
+
+              <div className="rounded-2xl border border-[#222] bg-[#080808] p-4 space-y-3">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                  <label className="min-w-0">
+                    <span className="mb-1 block text-[9px] uppercase tracking-wide text-zinc-500">From</span>
+                    <input value={origin} onChange={(event) => setOrigin(event.target.value)} className="w-full min-w-0 rounded-lg border border-[#222] bg-black px-2 py-2 text-xs text-white outline-none focus:border-[#D4AF37]" />
+                  </label>
+                  <span className="pt-4 text-[#D4AF37]" aria-hidden="true">→</span>
+                  <label className="min-w-0">
+                    <span className="mb-1 block text-[9px] uppercase tracking-wide text-zinc-500">To</span>
+                    <input value={destination} onChange={(event) => setDestination(event.target.value)} className="w-full min-w-0 rounded-lg border border-[#222] bg-black px-2 py-2 text-xs text-white outline-none focus:border-[#D4AF37]" />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="mb-1 block text-[9px] uppercase tracking-wide text-zinc-500">Travel date</span>
+                  <input type="date" value={journeyDate} onChange={(event) => setJourneyDate(event.target.value)} className="w-full rounded-lg border border-[#222] bg-black px-3 py-2 text-xs text-white outline-none focus:border-[#D4AF37]" />
+                </label>
+                {bookingMode === 'plan' && (
+                  <>
+                    <div>
+                      <span className="mb-1.5 block text-[9px] uppercase tracking-wide text-zinc-500">Class</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {['1A', '2A', '3A', 'SL', 'CC'].map((travelClass) => (
+                          <button key={travelClass} type="button" aria-pressed={selectedCls === travelClass} onClick={() => setSelectedCls(travelClass)} className={`rounded-lg border px-3 py-1.5 text-[10px] font-bold ${selectedCls === travelClass ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#252525] text-zinc-400'}`}>
+                            {travelClass}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="mb-1.5 block text-[9px] uppercase tracking-wide text-zinc-500">Passengers</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {passengers.map((passenger) => (
+                          <button key={passenger.id} type="button" aria-pressed={passenger.selected} onClick={() => setPassengers((current) => current.map((item) => item.id === passenger.id ? { ...item, selected: !item.selected } : item))} className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold ${passenger.selected ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#252525] text-zinc-400'}`}>
+                            {passenger.selected ? '✓ ' : '+ '}{passenger.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="rounded-2xl border border-[#222] bg-[#080808] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-bold">Trip add-ons</h2>
+                    <p className="text-[10px] text-zinc-500">Optional. Book even if you skip these.</p>
+                  </div>
+                  <button type="button" onClick={() => setActiveAddons(['First mile', 'Station help', 'Food', 'Data', 'Last mile'])} className="text-[10px] font-bold text-[#D4AF37] underline underline-offset-2">
+                    Add all door-to-door
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {['First mile', 'Station help', 'Food', 'Data', 'Last mile'].map((addon) => {
+                    const selected = activeAddons.includes(addon);
+                    return (
+                      <button
+                        key={addon}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setActiveAddons(selected ? activeAddons.filter((item) => item !== addon) : [...activeAddons, addon])}
+                        className={`min-h-10 rounded-xl border px-3 py-2 text-left text-[11px] font-semibold ${
+                          selected ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#252525] text-zinc-400'
+                        }`}
+                      >
+                        <span aria-hidden="true">{selected ? '✓ ' : '+ '}</span>{addon}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsPaySheetOpen(true)}
+                className="w-full rounded-xl bg-white py-3.5 text-sm font-extrabold text-black active:scale-[.98]"
+              >
+                {bookingMode === 'daily' ? 'Get local / metro pass' : bookingMode === 'quick' ? 'Book unreserved' : `Plan reserved · ₹${selectedTrain.price}`}
+              </button>
+              <p className="text-center text-[10px] text-zinc-500">Review details in the next step. No add-on is required.</p>
+            </div>
+          )}
+
           {/* TAB 2: GAMIFIED MISSION HUB (AIROLI ➔ CONNAUGHT PLACE) */}
           {activeTab === 'mission' && (
             <GamifiedMissionHub
               onOpenEngineDeck={() => setActiveTab('engine')}
-              onOpenRapidAssistance={() => setIsAssistanceOpen(true)}
+              onOpenRapidAssistance={openAssistance}
               onOpenFamilyShare={() => setIsFamilyShareOpen(true)}
               onOpenFoodSheet={() => setIsFoodSheetOpen(true)}
+              onOpenDataSheet={() => setIsDataSheetOpen(true)}
               onToast={showToast}
             />
           )}
@@ -370,11 +500,23 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsPhoneModalOpen(true)}
+                  onClick={() => openAssistance('sos')}
+                  className="p-3 bg-[#0a0a0a] border border-[#222] hover:border-[#D4AF37] rounded-xl text-left"
+                >
+                  <div className="font-bold text-white">SOS</div>
+                  <div className="text-[9px] text-zinc-500">Emergency help</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAssistance('support')}
                   className="p-3 bg-[#0a0a0a] border border-[#222] hover:border-white rounded-xl text-left"
                 >
+                  <div className="font-bold text-white">Support</div>
+                  <div className="text-[9px] text-zinc-500">Rail help & contacts</div>
+                </button>
+                <button type="button" onClick={() => setIsPhoneModalOpen(true)} className="p-3 bg-[#0a0a0a] border border-[#222] hover:border-white rounded-xl text-left">
                   <div className="font-bold text-white">Phone Auth</div>
-                  <div className="text-[9px] text-emerald-400">Firebase Verified ✓</div>
+                  <div className="text-[9px] text-zinc-400">{user ? 'Verified ✓' : 'Sign in'}</div>
                 </button>
               </div>
 
@@ -400,7 +542,8 @@ export default function App() {
         >
           {[
             { id: 'radar', label: 'Radar 24', icon: <Radio className="w-4 h-4" /> },
-            { id: 'mission', label: 'Mission', icon: <Zap className="w-4 h-4" /> },
+            { id: 'go', label: 'Go', icon: <MapPin className="w-4 h-4" /> },
+            { id: 'mission', label: 'Ride', icon: <Zap className="w-4 h-4" /> },
             { id: 'memory', label: 'Memories', icon: <Sparkles className="w-4 h-4" /> },
             { id: 'engine', label: 'Engine', icon: <EngineLineLogo className="w-4 h-4" /> },
             { id: 'feed', label: 'Feed', icon: <Coffee className="w-4 h-4" /> },
@@ -412,7 +555,7 @@ export default function App() {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveTab(item.id)}
-                className={`flex flex-col items-center w-12 transition ${
+                className={`flex flex-col items-center flex-1 min-w-0 transition ${
                   isActive ? 'text-white' : 'text-zinc-600'
                 }`}
               >
@@ -456,6 +599,7 @@ export default function App() {
         <RapidAssistanceModal
           isOpen={isAssistanceOpen}
           onClose={() => setIsAssistanceOpen(false)}
+          initialTab={assistanceSection}
           onToast={showToast}
         />
 
@@ -496,6 +640,9 @@ export default function App() {
           passengers={passengers}
           ridePref={ridePref}
           addons={activeAddons}
+          bookingMode={bookingMode}
+          onToggleAddon={(addon) => setActiveAddons((current) => current.includes(addon) ? current.filter((item) => item !== addon) : [...current, addon])}
+          onAddAllDoorToDoor={() => setActiveAddons(['First mile', 'Station help', 'Food', 'Data', 'Last mile'])}
           onPaymentSuccess={() => {
             setActiveTab('mission');
           }}

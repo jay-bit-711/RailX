@@ -18,7 +18,12 @@ import {
   Zap,
   Coffee,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  LifeBuoy,
+  Smartphone
 } from 'lucide-react';
 import LocomotiveEngineDeck from './LocomotiveEngineDeck';
 
@@ -27,10 +32,13 @@ export default function GamifiedMissionHub({
   onOpenRapidAssistance,
   onOpenFamilyShare,
   onOpenFoodSheet,
+  onOpenDataSheet,
+  onOpenSupport,
   onToast
 }) {
   const [missionStep, setMissionStep] = useState(1); // 1 to 5
   const [transportChoice, setTransportChoice] = useState('auto'); // 'auto' | 'bike'
+  const [pfDirection, setPfDirection] = useState('straight');
 
   return (
     <div className="space-y-4 animate-in fade-in">
@@ -41,14 +49,14 @@ export default function GamifiedMissionHub({
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
               <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-[#D4AF37]">
-                Live Mission: Door-to-Door AI Executor
+                Your ride
               </span>
             </div>
             <h1 className="text-base font-extrabold text-white mt-1">
               Navi Mumbai (Airoli) ➔ Connaught Place (Delhi)
             </h1>
             <div className="text-[11px] text-zinc-400 font-mono mt-0.5">
-              10:05 AM Departure • 22:05 PM Arrival (12h Flat) • Train #12951
+              10:05 Departure • 22:05 Arrival · Train #12951
             </div>
           </div>
           <button
@@ -58,6 +66,48 @@ export default function GamifiedMissionHub({
           >
             <Share2 className="w-3.5 h-3.5" />
             <span>Family Tracker</span>
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-[#222] bg-black p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[9px] uppercase tracking-wide text-zinc-500">Last known station</div>
+              <div className="text-xs font-bold text-white">Mumbai Central · MMCT</div>
+            </div>
+            <Compass className="h-5 w-5 text-[#D4AF37]" />
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              { id: 'left', label: 'Left', Icon: ArrowLeft },
+              { id: 'straight', label: 'Straight', Icon: ArrowUp },
+              { id: 'right', label: 'Right', Icon: ArrowRight }
+            ].map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={pfDirection === id}
+                onClick={() => setPfDirection(id)}
+                className={`flex items-center justify-center gap-1.5 rounded-lg border py-2 text-[10px] font-bold ${
+                  pfDirection === id ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#222] text-zinc-400'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />{label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 text-[10px] text-zinc-500">Platform 4 · follow the {pfDirection} exit direction</div>
+        </div>
+
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          <button type="button" onClick={() => onOpenRapidAssistance?.('sos')} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#333] py-2 text-[10px] font-bold text-[#D4AF37]">
+            <ShieldAlert className="h-3.5 w-3.5" />SOS
+          </button>
+          <button type="button" onClick={onOpenSupport} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#333] py-2 text-[10px] font-bold text-white">
+            <LifeBuoy className="h-3.5 w-3.5" />Support
+          </button>
+          <button type="button" onClick={onOpenDataSheet} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#333] py-2 text-[10px] font-bold text-white">
+            <Smartphone className="h-3.5 w-3.5 text-[#D4AF37]" />Data
           </button>
         </div>
 
@@ -92,7 +142,7 @@ export default function GamifiedMissionHub({
       {missionStep === 1 && (
         <div className="panel bg-[#080808] border border-[#222222] rounded-2xl p-4 space-y-4 animate-in fade-in">
           <div className="flex justify-between items-center text-xs">
-            <span className="font-mono text-zinc-400">⏱️ STAGE 01 · 09:45 AM</span>
+            <span className="font-mono text-zinc-400">⏱️ STAGE 01 · 09:45</span>
             <span className="gold-badge text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
               Airoli Sector 8
             </span>
@@ -130,16 +180,16 @@ export default function GamifiedMissionHub({
                 }`}
               >
                 <div className="text-xs font-bold text-white">🏍️ 2-Wheeler Bike</div>
-                <div className="text-[11px] text-emerald-400 font-bold mt-1">7 MINS BUFFER</div>
+                <div className="text-[11px] text-[#D4AF37] font-bold mt-1">7 MINS BUFFER</div>
                 <p className="text-[9px] text-zinc-400 mt-0.5">
-                  You can leave at 09:52 AM. Quick navigation through flyover lane.
+                  You can leave at 09:52. Quick navigation through flyover lane.
                 </p>
               </div>
             </div>
 
             <div className="p-2.5 bg-[#111] rounded-lg border border-[#222] text-[10px] text-zinc-400 flex justify-between items-center font-mono">
               <span>⚠️ LAST WINDOW TO CATCH TRAIN:</span>
-              <span className="text-red-400 font-bold">10:02 AM SHARP</span>
+              <span className="text-[#D4AF37] font-bold">10:02 SHARP</span>
             </div>
           </div>
 
@@ -151,7 +201,7 @@ export default function GamifiedMissionHub({
             }}
             className="w-full py-3.5 bg-white text-black font-extrabold rounded-xl text-xs uppercase tracking-wider active:scale-[.98] transition"
           >
-            Start Ride Now · 09:45 AM (Next: Station Entrance)
+            Start Ride Now · 09:45 (Next: Station Entrance)
           </button>
         </div>
       )}
@@ -160,7 +210,7 @@ export default function GamifiedMissionHub({
       {missionStep === 2 && (
         <div className="panel bg-[#080808] border border-[#222222] rounded-2xl p-4 space-y-4 animate-in fade-in">
           <div className="flex justify-between items-center text-xs">
-            <span className="font-mono text-zinc-400">📍 STAGE 02 · 10:01 AM</span>
+            <span className="font-mono text-zinc-400">📍 STAGE 02 · 10:01</span>
             <span className="gold-badge text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
               Station Main Concourse
             </span>
@@ -171,7 +221,7 @@ export default function GamifiedMissionHub({
             <div className="p-3 bg-black border border-[#222] rounded-xl text-center space-y-1">
               <Users className="w-4 h-4 text-white mx-auto" />
               <div className="text-[9px] text-zinc-500 uppercase">Crowd Density</div>
-              <div className="font-bold text-emerald-400 font-mono">34% (Low)</div>
+              <div className="font-bold text-[#D4AF37] font-mono">34% (Low)</div>
               <div className="text-[8px] text-zinc-500">Security line ~90s</div>
             </div>
 
@@ -207,12 +257,12 @@ export default function GamifiedMissionHub({
           <button
             type="button"
             onClick={() => {
-              onToast("🏃 Arrived Platform 4 at 10:03 AM! Standing by Coach B3 marker.");
+              onToast("🏃 Arrived Platform 4 at 10:03. Standing by Coach B3 marker.");
               setMissionStep(3);
             }}
             className="w-full py-3.5 bg-white text-black font-extrabold rounded-xl text-xs uppercase tracking-wider active:scale-[.98] transition"
           >
-            Sprint to Platform 4 (10:03 AM)
+            Sprint to Platform 4 (10:03)
           </button>
         </div>
       )}
@@ -221,7 +271,7 @@ export default function GamifiedMissionHub({
       {missionStep === 3 && (
         <div className="panel bg-[#080808] border border-[#222222] rounded-2xl p-4 space-y-4 animate-in fade-in">
           <div className="flex justify-between items-center text-xs">
-            <span className="font-mono text-zinc-400">🚉 STAGE 03 · 10:03 AM</span>
+            <span className="font-mono text-zinc-400">🚉 STAGE 03 · 10:03</span>
             <span className="gold-badge text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
               Platform 4 Marker
             </span>
@@ -230,7 +280,7 @@ export default function GamifiedMissionHub({
           <div className="p-4 bg-black border border-[#222] rounded-xl space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-bold text-white">Boarded Coach B3 · Berth 21</span>
-              <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span className="text-[10px] font-mono font-bold text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-0.5 rounded border border-[#D4AF37]/20">
                 LUGGAGE STOWED
               </span>
             </div>
@@ -242,12 +292,12 @@ export default function GamifiedMissionHub({
           <button
             type="button"
             onClick={() => {
-              onToast("🚆 Departure at 10:05 AM sharp! Throttle surging to 130 km/h.");
+              onToast("🚆 Departure at 10:05 sharp! Throttle surging to 130 km/h.");
               setMissionStep(4);
             }}
             className="w-full py-3.5 bg-white text-black font-extrabold rounded-xl text-xs uppercase tracking-wider active:scale-[.98] transition"
           >
-            Depart Right on Time · 10:05 AM (0 Delay)
+            Depart Right on Time · 10:05 (0 Delay)
           </button>
         </div>
       )}
@@ -269,7 +319,7 @@ export default function GamifiedMissionHub({
             </div>
             <div className="text-right">
               <div className="text-xs font-bold text-[#D4AF37] font-mono">Next Checkpoint</div>
-              <div className="text-[10px] text-zinc-400">12:45 PM Surat Food Stop</div>
+              <div className="text-[10px] text-zinc-400">12:45 Surat Food Stop</div>
             </div>
           </div>
 
@@ -310,7 +360,7 @@ export default function GamifiedMissionHub({
       {missionStep === 5 && (
         <div className="panel bg-[#080808] border border-[#222222] rounded-2xl p-4 space-y-4 animate-in fade-in">
           <div className="flex justify-between items-center text-xs">
-            <span className="font-mono text-zinc-400">🍱 STAGE 05 · 12:45 PM</span>
+            <span className="font-mono text-zinc-400">🍱 STAGE 05 · 12:45</span>
             <span className="gold-badge text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
               Surat Jn (8 Min Halt)
             </span>
@@ -319,7 +369,7 @@ export default function GamifiedMissionHub({
           <div className="p-3.5 bg-black border border-[#222] rounded-xl space-y-2 text-xs">
             <div className="flex justify-between font-bold text-white">
               <span>Time & Halt Availability Analysis</span>
-              <span className="text-emerald-400">Verified Halt</span>
+              <span className="text-[#D4AF37]">Verified Halt</span>
             </div>
             <p className="text-[11px] text-zinc-400 leading-relaxed">
               Surat platform halt is 8 minutes. In-seat delivery partner pre-positioned at Coach B3 entry door.

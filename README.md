@@ -70,6 +70,7 @@ Production-grade rules have been authored and deployed to `railx-48e91`:
 - **Default Deny:** Strict authentication required.
 - **Owner Isolation:** Passengers can only read and modify their own trips, food orders, data top-ups, and memories (`uid == request.auth.uid`).
 - **Schema Validation:** Field types, string length bounds, price limits, and immutable creation timestamps are verified on all operations.
+- **Journey Add-ons:** Selected door-to-door add-ons are saved with journeys and restricted to the supported add-on list by Firestore rules.
 - **Commuter Chat:** Authenticated passengers can read train/station chatter and post verified updates.
 
 For the Firestore queries in the app (`uid == ...` with `orderBy(createdAt)` / `orderBy(timestamp)`), the required composite indexes are tracked in `firestore.indexes.json` and should be deployed with `firebase deploy --only firestore:indexes` when the project is updated.

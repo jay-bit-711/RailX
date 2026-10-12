@@ -12,28 +12,28 @@ export default function AiMemoryEngine({ user, onToast }) {
   const MILESTONE_STAMPS = [
     {
       id: 'm1',
-      station: 'Mumbai / Airoli (10:05 AM)',
+      station: 'Mumbai / Airoli (10:05)',
       title: 'First-Mile Auto & WAP-7 Boarding',
       speed: '34 km/h ➔ 110 km/h',
       tag: 'DEPARTURE STAMP'
     },
     {
       id: 'm2',
-      station: 'Surat Junction (12:45 PM)',
+      station: 'Surat Junction (12:45)',
       title: 'Surati Locho & Hot Pantry Lunch',
       speed: '124 km/h',
       tag: 'GASTRONOMY STAMP'
     },
     {
       id: 'm3',
-      station: 'Chambal River Bridge (05:20 PM)',
+      station: 'Chambal River Bridge (17:20)',
       title: 'Golden Sunset Gorge Curve (Right Window)',
       speed: '128 km/h',
       tag: 'HERITAGE STAMP'
     },
     {
       id: 'm4',
-      station: 'Connaught Place Delhi (22:05 PM)',
+      station: 'Connaught Place Delhi (22:05)',
       title: 'Arrival at Capital Milestone',
       speed: '130 km/h Peak',
       tag: 'DESTINATION STAMP'
@@ -69,13 +69,13 @@ export default function AiMemoryEngine({ user, onToast }) {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
-            <span>AI Journey Memory Vault</span>
+            <span>Journey memories</span>
             <span className="gold-badge text-[9px] px-2 py-0.5 rounded-full font-mono font-bold">
-              PERMANENT MEMORY
+              SAVED
             </span>
           </h2>
           <p className="text-[10px] text-zinc-500">
-            “AI Door-to-Door Journey Executor • Crafting Memories on Every Track”
+            Save moments from your journey.
           </p>
         </div>
       </div>
@@ -93,10 +93,10 @@ export default function AiMemoryEngine({ user, onToast }) {
 
         <div>
           <span className="text-[9px] font-mono uppercase tracking-[0.25em] text-[#D4AF37] block font-bold">
-            INDIAN RAILWAYS TRAVELOGUE SOUVENIR
+          JOURNEY RECORD
           </span>
           <h3 className="text-sm font-extrabold text-white mt-1">
-            Certified Passenger Journey Milestone
+            Journey certificate
           </h3>
           <p className="text-[11px] text-zinc-400 mt-1 max-w-xs mx-auto">
             This digital certificate commemorates your 1,384 km journey from <strong>Navi Mumbai (Airoli)</strong> to <strong>Connaught Place (Delhi)</strong>.
@@ -138,7 +138,7 @@ export default function AiMemoryEngine({ user, onToast }) {
       {/* Geotagged Milestone Stamps on Track */}
       <div className="space-y-2">
         <div className="text-[10px] uppercase font-mono font-bold text-zinc-500">
-          Geotagged Track Milestones ({MILESTONE_STAMPS.length})
+          Journey milestones ({MILESTONE_STAMPS.length})
         </div>
         <div className="space-y-2">
           {MILESTONE_STAMPS.map((st) => (

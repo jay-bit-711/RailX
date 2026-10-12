@@ -45,6 +45,7 @@ export async function createJourney(uid, journeyData) {
     coachBerth: journeyData.coachBerth || "Coach B3 / Berth 21",
     travelType: journeyData.travelType || "reserved", // 'reserved' | 'unreserved' | 'daily_commute'
     platformGuidance: journeyData.platformGuidance || "Entry Gate 2, Escalator to PF 3, Coach Position 12th from Engine",
+    addons: journeyData.addons || [],
     status: "planned", // 'planned' | 'active' | 'completed' | 'cancelled'
     createdAt: serverTimestamp()
   });

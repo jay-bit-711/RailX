@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import { ShieldAlert, Wrench, Sparkles, Cigarette, Mountain, CheckCircle2, AlertTriangle, Coffee } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ShieldAlert, Wrench, Sparkles, Cigarette, Mountain, CheckCircle2, AlertTriangle, Coffee, LifeBuoy, Phone } from 'lucide-react';
 
-export default function RapidAssistanceModal({ isOpen, onClose, onToast }) {
+export default function RapidAssistanceModal({ isOpen, onClose, onToast, initialTab = 'sos' }) {
   const [activeTab, setActiveTab] = useState('sos'); // 'sos' | 'repair' | 'washroom' | 'break' | 'scenic'
   const [washroomRating, setWashroomRating] = useState(4);
   const [repairItem, setRepairItem] = useState('Fan not rotating in Berth 21');
   const [breakTimer, setBreakTimer] = useState(180); // 3 mins break countdown
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) setActiveTab(initialTab);
+  }, [initialTab, isOpen]);
 
-  const handleSos = () => {
-    onToast("🚨 RPF ESCORT NOTIFIED: Security staff dispatched to Coach B3. GPS Beacon pinned.");
-    onClose();
-  };
+  if (!isOpen) return null;
 
   const handleRepairSubmit = () => {
     onToast(`🔧 RailMadad Ticket #RM-8419 logged: "${repairItem}". Electrician visiting coach.`);
@@ -40,9 +39,10 @@ export default function RapidAssistanceModal({ isOpen, onClose, onToast }) {
         </div>
 
         {/* Action Switcher Tabs */}
-        <div className="grid grid-cols-5 gap-1 p-1 bg-black border border-[#222] rounded-xl text-[10px] font-bold">
+        <div className="grid grid-cols-6 gap-1 p-1 bg-black border border-[#222] rounded-xl text-[9px] font-bold">
           {[
-            { id: 'sos', label: 'RPF SOS', icon: '🚨' },
+            { id: 'sos', label: 'SOS', icon: '🚨' },
+            { id: 'support', label: 'Support', icon: 'ℹ️' },
             { id: 'repair', label: 'Repairs', icon: '⚡' },
             { id: 'washroom', label: 'Hygiene', icon: '🚾' },
             { id: 'break', label: 'Chai/Halt', icon: '☕' },
@@ -64,21 +64,30 @@ export default function RapidAssistanceModal({ isOpen, onClose, onToast }) {
 
         {/* 1. SOS TAB */}
         {activeTab === 'sos' && (
-          <div className="p-4 bg-black border border-red-500/40 rounded-2xl space-y-3">
-            <div className="flex items-center space-x-2 text-red-500 font-bold text-xs">
-              <ShieldAlert className="w-4 h-4 text-red-500" />
-              <span>Railway Protection Force (RPF) Emergency SOS</span>
+          <div className="p-4 bg-black border border-[#D4AF37]/40 rounded-2xl space-y-3">
+            <div className="flex items-center space-x-2 text-[#D4AF37] font-bold text-xs">
+              <ShieldAlert className="w-4 h-4 text-[#D4AF37]" />
+              <span>Railway emergency</span>
             </div>
             <p className="text-[11px] text-zinc-400 leading-relaxed">
-              Use for theft, suspicious activity, eve-teasing, or medical emergencies. Automatically signals train escort team and next junction station master.
+              For urgent railway assistance, call the railway helpline. This app does not send an SOS automatically.
             </p>
-            <button
-              type="button"
-              onClick={handleSos}
-              className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-red-600/30 active:scale-95 transition"
-            >
-              Broadcast Immediate RPF SOS Alert
-            </button>
+            <a href="tel:139" className="block w-full rounded-xl bg-[#D4AF37] py-3 text-center text-xs font-black uppercase tracking-wider text-black active:scale-95 transition">
+              Call 139 for help
+            </a>
+          </div>
+        )}
+
+        {activeTab === 'support' && (
+          <div className="space-y-3 rounded-2xl border border-[#222] bg-black p-4">
+            <div className="flex items-center gap-2 text-sm font-bold"><LifeBuoy className="h-4 w-4 text-[#D4AF37]" />Railway support</div>
+            <p className="text-xs text-zinc-400">Contact official railway support for safety, medical or journey help.</p>
+            <a href="tel:139" className="flex items-center justify-center gap-2 rounded-xl bg-white py-3 text-xs font-bold text-black">
+              <Phone className="h-4 w-4" />Call 139
+            </a>
+            <a href="https://railmadad.indianrailways.gov.in/" target="_blank" rel="noreferrer" className="block rounded-xl border border-[#333] py-3 text-center text-xs font-bold text-[#D4AF37]">
+              Open RailMadad
+            </a>
           </div>
         )}
 
@@ -162,7 +171,7 @@ export default function RapidAssistanceModal({ isOpen, onClose, onToast }) {
             <div className="p-3 bg-[#111] border border-[#222] rounded-xl flex justify-between items-center">
               <div>
                 <div className="text-[10px] text-zinc-500 uppercase font-mono">Platform Re-boarding Buzzer</div>
-                <div className="text-base font-extrabold font-mono text-white">Alarm set for 00:23 AM</div>
+                <div className="text-base font-extrabold font-mono text-white">Alarm set for 00:23</div>
               </div>
               <button
                 type="button"

@@ -38,7 +38,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
       elevation: '482 m',
       status: 'On Time (0m)',
       signal: 'Clear Green (Signal Block 14A)',
-      nextHalt: 'Surat Jn (12:45 PM)',
+      nextHalt: 'Surat Jn (12:45)',
       price: 2150,
       x: 140,
       y: 260
@@ -56,7 +56,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
       elevation: '112 m',
       status: '3m Early',
       signal: 'Clear Green',
-      nextHalt: 'Nalgonda (07:15 AM)',
+      nextHalt: 'Nalgonda (07:15)',
       price: 1245,
       x: 240,
       y: 310
@@ -74,7 +74,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
       elevation: '310 m',
       status: '8m Late',
       signal: 'Double Yellow Caution',
-      nextHalt: 'Bhusaval Jn (04:15 PM)',
+      nextHalt: 'Bhusaval Jn (16:15)',
       price: 650,
       x: 180,
       y: 190
@@ -297,7 +297,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
               </span>
             </div>
             <div className="text-[10px] text-zinc-400 font-mono mt-0.5">
-              {activeTrain.from} ➔ {activeTrain.to} • Next: {activeTrain.nextHalt}
+              Last known station: {activeTrain.from} · Next: {activeTrain.nextHalt}
             </div>
           </div>
 
@@ -333,7 +333,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
             className="col-span-2 py-3 bg-white text-black font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[.98] transition flex items-center justify-center space-x-1.5"
           >
             <CreditCard className="w-3.5 h-3.5" />
-            <span>1-Tap Book · ₹{activeTrain.price}</span>
+            <span>Book · ₹{activeTrain.price}</span>
           </button>
 
           <button

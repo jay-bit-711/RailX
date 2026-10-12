@@ -147,3 +147,111 @@ body {
   background: #080808;
   border: 1px solid #1F1F1F;
 }
+
+/* Keep status colors within RailX's black, white and gold palette. */
+[class*="text-emerald-"],
+[class*="text-green-"],
+[class*="text-red-"],
+[class*="text-rose-"],
+[class*="text-orange-"],
+[class*="text-amber-"],
+[class*="text-yellow-"],
+[class*="text-blue-"],
+[class*="text-sky-"],
+[class*="text-indigo-"],
+[class*="text-violet-"],
+[class*="text-purple-"],
+[class*="text-pink-"],
+[class*="text-cyan-"],
+[class*="text-teal-"] {
+  color: #D4AF37 !important;
+}
+
+[class*="border-emerald-"],
+[class*="border-green-"],
+[class*="border-red-"],
+[class*="border-rose-"],
+[class*="border-orange-"],
+[class*="border-amber-"],
+[class*="border-yellow-"],
+[class*="border-blue-"],
+[class*="border-sky-"],
+[class*="border-indigo-"],
+[class*="border-violet-"],
+[class*="border-purple-"],
+[class*="border-pink-"],
+[class*="border-cyan-"],
+[class*="border-teal-"] {
+  border-color: rgba(212, 175, 55, 0.35) !important;
+}
+
+[class*="bg-emerald-"],
+[class*="bg-green-"],
+[class*="bg-red-"],
+[class*="bg-rose-"],
+[class*="bg-orange-"],
+[class*="bg-amber-"],
+[class*="bg-yellow-"],
+[class*="bg-blue-"],
+[class*="bg-sky-"],
+[class*="bg-indigo-"],
+[class*="bg-violet-"],
+[class*="bg-purple-"],
+[class*="bg-pink-"],
+[class*="bg-cyan-"],
+[class*="bg-teal-"] {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+}
+
+[class*="from-emerald-"],
+[class*="from-green-"],
+[class*="from-red-"],
+[class*="from-orange-"],
+[class*="from-amber-"],
+[class*="from-yellow-"],
+[class*="from-blue-"],
+[class*="from-sky-"],
+[class*="from-indigo-"],
+[class*="from-violet-"],
+[class*="from-purple-"],
+[class*="from-pink-"],
+[class*="from-cyan-"],
+[class*="from-teal-"] {
+  --tw-gradient-from: #D4AF37 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(212 175 55 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+[class*="via-emerald-"],
+[class*="via-green-"],
+[class*="via-red-"],
+[class*="via-orange-"],
+[class*="via-amber-"],
+[class*="via-yellow-"],
+[class*="via-blue-"],
+[class*="via-sky-"],
+[class*="via-indigo-"],
+[class*="via-violet-"],
+[class*="via-purple-"],
+[class*="via-pink-"],
+[class*="via-cyan-"],
+[class*="via-teal-"] {
+  --tw-gradient-stops: var(--tw-gradient-from), #D4AF37 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+[class*="to-emerald-"],
+[class*="to-green-"],
+[class*="to-red-"],
+[class*="to-orange-"],
+[class*="to-amber-"],
+[class*="to-yellow-"],
+[class*="to-blue-"],
+[class*="to-sky-"],
+[class*="to-indigo-"],
+[class*="to-violet-"],
+[class*="to-purple-"],
+[class*="to-pink-"],
+[class*="to-cyan-"],
+[class*="to-teal-"] {
+  --tw-gradient-to: #D4AF37 var(--tw-gradient-to-position) !important;
+}

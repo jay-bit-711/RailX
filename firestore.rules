@@ -29,6 +29,7 @@ service cloud.firestore {
     //   - toStation: string (required) - Destination station code (e.g., "NDLS")
     //   - journeyDate: string (required) - Date string (YYYY-MM-DD)
     //   - coachBerth: string (optional) - Coach & berth/seat info
+    //   - addons: list (optional) - Selected optional door-to-door services
     //   - travelType: string (required, in ['reserved', 'unreserved', 'daily_commute'])
     //   - platformGuidance: string (optional) - Platform and door-to-door guidance notes
     //   - status: string (required, in ['planned', 'active', 'completed', 'cancelled'])
@@ -136,6 +137,11 @@ service cloud.firestore {
              (!('pnr' in data) || (data.pnr is string && data.pnr.size() <= 15)) &&
              (!('coachBerth' in data) || (data.coachBerth is string && data.coachBerth.size() <= 30)) &&
              (!('platformGuidance' in data) || (data.platformGuidance is string && data.platformGuidance.size() <= 500)) &&
+             (!('addons' in data) || (
+               data.addons is list &&
+               data.addons.size() <= 5 &&
+               data.addons.hasOnly(['First mile', 'Station help', 'Food', 'Data', 'Last mile'])
+             )) &&
              data.createdAt is timestamp;
     }
 
