@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  background-color: #000000;
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+/* Scrollbar hiding utility */
+.ns::-webkit-scrollbar {
+  display: none;
+}
+.ns {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Monochrome + Gold styling */
+.chip {
+  border: 1px solid #222222;
+  background: #080808;
+  color: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.chip.on, .on {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+  font-weight: 700;
+}
+
+.chip.gold-on {
+  background: #D4AF37 !important;
+  color: #000000 !important;
+  border-color: #D4AF37 !important;
+  font-weight: 800;
+}
+
+.gold-glow {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+}
+
+.gold-border {
+  border-color: #D4AF37;
+}
+
+.gold-text {
+  color: #D4AF37;
+}
+
+.gold-badge {
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #D4AF37;
+}
+
+/* Laser scan animation for ticket scanner */
+@keyframes scanLaser {
+  0% {
+    top: 5%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.8;
+  }
+}
+
+.scan-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, #ffffff, #D4AF37, transparent);
+  box-shadow: 0 0 12px #D4AF37;
+  animation: scanLaser 2.2s ease-in-out infinite;
+}
+
+/* Radar ping animation */
+@keyframes radarPing {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.radar-ping {
+  animation: radarPing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Audio wave pulsing animation */
+@keyframes audioPulse {
+  0%, 100% {
+    height: 6px;
+  }
+  50% {
+    height: 28px;
+  }
+}
+
+.audio-bar-1 { animation: audioPulse 0.8s ease-in-out infinite; }
+.audio-bar-2 { animation: audioPulse 0.6s ease-in-out infinite 0.15s; }
+.audio-bar-3 { animation: audioPulse 1.0s ease-in-out infinite 0.3s; }
+.audio-bar-4 { animation: audioPulse 0.7s ease-in-out infinite 0.1s; }
+.audio-bar-5 { animation: audioPulse 0.9s ease-in-out infinite 0.25s; }
+
+/* Pure Black & White Logo */
+.logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: -0.03em;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #ffffff;
+}
+
+.logo-gold {
+  border: 1px solid #D4AF37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.panel {
+  background: #080808;
+  border: 1px solid #1F1F1F;
+}

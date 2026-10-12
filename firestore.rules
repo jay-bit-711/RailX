@@ -1,0 +1,226 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches request.auth.uid)
+    // Fields:
+    //   - uid: string (required, immutable) - Firebase Auth UID
+    //   - phone: string (required) - Verified passenger phone number
+    //   - displayName: string (optional) - Passenger display name
+    //   - journeysCount: number (optional, >= 0) - Number of journeys completed (tier tracking)
+    //   - frequentTier: string (optional, in ['Silver', 'Gold', 'Platinum'])
+    //   - homeStation: string (optional) - Home railway station code/name
+    //   - createdAt: timestamp (required, immutable)
+    //   - updatedAt: timestamp (optional)
+    //
+    // Collection: journeys
+    // Document ID: {journeyId}
+    // Fields:
+    //   - uid: string (required, immutable) - Passenger UID
+    //   - pnr: string (optional) - Indian Railways PNR number (10 digits)
+    //   - trainNumber: string (required) - Train number (e.g., "12951")
+    //   - trainName: string (required) - Train name (e.g., "Mumbai Rajdhani")
+    //   - fromStation: string (required) - Origin station code (e.g., "MMCT")
+    //   - toStation: string (required) - Destination station code (e.g., "NDLS")
+    //   - journeyDate: string (required) - Date string (YYYY-MM-DD)
+    //   - coachBerth: string (optional) - Coach & berth/seat info
+    //   - travelType: string (required, in ['reserved', 'unreserved', 'daily_commute'])
+    //   - platformGuidance: string (optional) - Platform and door-to-door guidance notes
+    //   - status: string (required, in ['planned', 'active', 'completed', 'cancelled'])
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: food_orders
+    // Document ID: {orderId}
+    // Fields:
+    //   - uid: string (required, immutable) - Passenger UID
+    //   - journeyId: string (optional) - Associated journey ID
+    //   - trainNumber: string (required) - Train number
+    //   - station: string (required) - Delivery station
+    //   - vendorName: string (required) - FSSAI/IRCTC authorized vendor
+    //   - items: list (required, size <= 20) - List of order items
+    //   - totalAmount: number (required, > 0) - Amount paid in INR
+    //   - hygieneRating: number (optional, between 1 and 5) - Verified hygiene audit feedback
+    //   - hygieneReview: string (optional) - Feedback on pantry/pack hygiene
+    //   - status: string (required, in ['placed', 'preparing', 'delivered', 'cancelled'])
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: data_recharges
+    // Document ID: {rechargeId}
+    // Fields:
+    //   - uid: string (required, immutable) - Passenger UID
+    //   - phone: string (required) - Phone number to recharge
+    //   - operator: string (required, in ['Jio', 'Airtel', 'Vi', 'BSNL'])
+    //   - packName: string (required) - Data pack description
+    //   - dataAmount: string (required) - e.g., "2GB Booster"
+    //   - amount: number (required, > 0) - Pack price in INR
+    //   - status: string (required, in ['success', 'pending', 'failed'])
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: journey_memories
+    // Document ID: {memoryId}
+    // Fields:
+    //   - uid: string (required, immutable) - Passenger UID
+    //   - journeyId: string (optional) - Associated journey ID
+    //   - title: string (required, size <= 100) - Memory title/station highlight
+    //   - note: string (required, size <= 1000) - Passenger notes/stories
+    //   - mediaUrl: string (optional) - Optional photo link
+    //   - trainNumber: string (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: live_chats
+    // Document ID: {chatId}
+    // Fields:
+    //   - uid: string (required, immutable) - Passenger UID
+    //   - channel: string (required, e.g., trainNumber or stationCode)
+    //   - senderName: string (required, size <= 50)
+    //   - text: string (required, size <= 500)
+    //   - timestamp: timestamp (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function uidUnchanged() {
+      return request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return request.resource.data.uid == resource.data.uid;
+    }
+
+    // --- Users Collection Rules ---
+    function isValidUser(data) {
+      return data.uid is string &&
+             data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 15 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 60)) &&
+             (!('journeysCount' in data) || (data.journeysCount is number && data.journeysCount >= 0)) &&
+             (!('frequentTier' in data) || (data.frequentTier in ['Silver', 'Gold', 'Platinum'])) &&
+             (!('homeStation' in data) || (data.homeStation is string && data.homeStation.size() <= 20)) &&
+             data.createdAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && uidUnchanged() && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && uidNotModified() && isValidUser(request.resource.data) &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isOwner(userId);
+    }
+
+    // --- Journeys Collection Rules ---
+    function isValidJourney(data) {
+      return data.uid is string &&
+             data.trainNumber is string && data.trainNumber.size() >= 3 && data.trainNumber.size() <= 10 &&
+             data.trainName is string && data.trainName.size() <= 100 &&
+             data.fromStation is string && data.fromStation.size() >= 2 && data.fromStation.size() <= 20 &&
+             data.toStation is string && data.toStation.size() >= 2 && data.toStation.size() <= 20 &&
+             data.journeyDate is string &&
+             data.travelType in ['reserved', 'unreserved', 'daily_commute'] &&
+             data.status in ['planned', 'active', 'completed', 'cancelled'] &&
+             (!('pnr' in data) || (data.pnr is string && data.pnr.size() <= 15)) &&
+             (!('coachBerth' in data) || (data.coachBerth is string && data.coachBerth.size() <= 30)) &&
+             (!('platformGuidance' in data) || (data.platformGuidance is string && data.platformGuidance.size() <= 500)) &&
+             data.createdAt is timestamp;
+    }
+
+    match /journeys/{journeyId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && uidUnchanged() && isValidJourney(request.resource.data);
+      allow update: if isDocOwner() && uidNotModified() && isValidJourney(request.resource.data) &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    // --- Food Orders Collection Rules ---
+    function isValidFoodOrder(data) {
+      return data.uid is string &&
+             data.trainNumber is string && data.trainNumber.size() <= 10 &&
+             data.station is string && data.station.size() <= 30 &&
+             data.vendorName is string && data.vendorName.size() <= 80 &&
+             data.items is list && data.items.size() > 0 && data.items.size() <= 20 &&
+             data.totalAmount is number && data.totalAmount > 0 &&
+             data.status in ['placed', 'preparing', 'delivered', 'cancelled'] &&
+             (!('hygieneRating' in data) || (data.hygieneRating is number && data.hygieneRating >= 1 && data.hygieneRating <= 5)) &&
+             (!('hygieneReview' in data) || (data.hygieneReview is string && data.hygieneReview.size() <= 500)) &&
+             data.createdAt is timestamp;
+    }
+
+    match /food_orders/{orderId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && uidUnchanged() && isValidFoodOrder(request.resource.data);
+      allow update: if isDocOwner() && uidNotModified() && isValidFoodOrder(request.resource.data) &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    // --- Data Recharges Collection Rules ---
+    function isValidDataRecharge(data) {
+      return data.uid is string &&
+             data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 15 &&
+             data.operator in ['Jio', 'Airtel', 'Vi', 'BSNL'] &&
+             data.packName is string && data.packName.size() <= 60 &&
+             data.dataAmount is string && data.dataAmount.size() <= 30 &&
+             data.amount is number && data.amount > 0 &&
+             data.status in ['success', 'pending', 'failed'] &&
+             data.createdAt is timestamp;
+    }
+
+    match /data_recharges/{rechargeId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && uidUnchanged() && isValidDataRecharge(request.resource.data);
+      allow update: if isDocOwner() && uidNotModified() && isValidDataRecharge(request.resource.data) &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    // --- Journey Memories Collection Rules ---
+    function isValidMemory(data) {
+      return data.uid is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.note is string && data.note.size() <= 1000 &&
+             (!('mediaUrl' in data) || (data.mediaUrl is string && data.mediaUrl.size() <= 500)) &&
+             (!('trainNumber' in data) || (data.trainNumber is string && data.trainNumber.size() <= 20)) &&
+             data.createdAt is timestamp;
+    }
+
+    match /journey_memories/{memoryId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && uidUnchanged() && isValidMemory(request.resource.data);
+      allow update: if isDocOwner() && uidNotModified() && isValidMemory(request.resource.data) &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    // --- Live Commuter Community Chat Rules ---
+    function isValidChatMessage(data) {
+      return data.uid is string &&
+             data.channel is string && data.channel.size() > 0 && data.channel.size() <= 50 &&
+             data.senderName is string && data.senderName.size() > 0 && data.senderName.size() <= 50 &&
+             data.text is string && data.text.size() > 0 && data.text.size() <= 500 &&
+             data.timestamp is timestamp;
+    }
+
+    match /live_chats/{chatId} {
+      // Passengers on the same route/train can read station & train live updates
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && uidUnchanged() && isValidChatMessage(request.resource.data);
+      allow update, delete: if isDocOwner();
+    }
+  }
+}
