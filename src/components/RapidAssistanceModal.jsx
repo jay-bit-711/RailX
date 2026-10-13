@@ -57,7 +57,13 @@ export default function RapidAssistanceModal({
 
   useEffect(() => {
     if (isOpen) {
-      setView(initialTab);
+      const mapped =
+        initialTab === 'sos' || initialTab === 'support'
+          ? 'support'
+          : initialTab === 'tickets'
+            ? 'tickets'
+            : 'categories';
+      setView(mapped);
       setCreatedTicket(null);
       setCategory(null);
       setRating(0);
@@ -88,17 +94,21 @@ export default function RapidAssistanceModal({
     <div className="absolute inset-0 z-50 flex flex-col justify-end bg-black/95 animate-in fade-in">
       <div className="max-h-[80vh] space-y-4 overflow-y-auto rounded-t-3xl border-t border-[#333] bg-[#080808] p-5">
         <div className="flex items-center justify-between">
-          <h2 className="sr-only">Help</h2>
-          <span className="text-2xl" aria-hidden="true">{view === 'support' ? '🛟' : view === 'tickets' ? '📋' : '🆘'}</span>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => setView('categories')} className={`rounded-lg border px-2 py-1 text-[10px] font-bold ${view === 'categories' || view === 'feedback' || view === 'success' ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#333] text-zinc-400'}`}>🆘 Help</button>
+            <button type="button" onClick={() => setView('support')} className={`rounded-lg border px-2 py-1 text-[10px] font-bold ${view === 'support' ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#333] text-zinc-400'}`}>📞 139</button>
+            <button type="button" onClick={() => setView('tickets')} className={`rounded-lg border px-2 py-1 text-[10px] font-bold ${view === 'tickets' ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#333] text-zinc-400'}`}>📋 Tickets</button>
+          </div>
           <button type="button" onClick={onClose} aria-label="Close" className="px-3 py-1 text-xl text-zinc-400">×</button>
         </div>
-        <p className="text-center text-[10px] text-zinc-400">No auto-dispatch</p>
+        <p className="text-center text-[10px] text-zinc-400">No auto-dispatch · we route your issue</p>
 
         {view === 'categories' && (
           <div className="grid grid-cols-5 gap-2">
             {CATEGORIES.map((item) => (
               <button key={item.id} type="button" aria-label={item.detail ? `${item.label} · ${item.detail}` : item.label} onClick={() => { setCategory(item); setRating(0); setView('feedback'); }} className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-[#333] bg-black text-2xl hover:border-[#D4AF37]">
                 <span>{item.emoji}</span>
+                <span className="text-[9px] font-bold text-zinc-400">{item.label}</span>
               </button>
             ))}
           </div>
