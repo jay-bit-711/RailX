@@ -249,8 +249,8 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
               <div
                 className={`relative flex items-center justify-center rounded-xl p-1.5 transition active:scale-95 ${
                   isSelected
-                    ? 'bg-white text-black border-2 border-white shadow-[0_0_20px_rgba(255,255,255,0.8)] scale-110'
-                    : 'bg-black text-white border border-[#333] hover:border-white'
+                    ? 'bg-[#D4AF37] text-black border-2 border-[#D4AF37] shadow-[0_0_24px_rgba(212,175,55,0.9)] scale-110'
+                      : 'bg-black text-white border border-[#333] hover:border-[#D4AF37]'
                 }`}
               >
                 <EngineLineLogo className="w-4 h-4" goldAccent={!isSelected} animated={isSelected} speedLines={isSelected} />
@@ -259,7 +259,7 @@ export default function TrainRadarMap({ onSelectTrain, onOpenPayment, onOpenFood
 
               {/* Pulsing ring for active train */}
               {isSelected && (
-                <div className="absolute inset-0 -m-1 rounded-xl border border-white animate-ping pointer-events-none"></div>
+                <div className="radar-ping absolute inset-0 -m-1 rounded-xl border-2 border-[#D4AF37] shadow-[0_0_18px_rgba(212,175,55,0.65)] pointer-events-none"></div>
               )}
 
               {/* Tooltip Mini Pill */}

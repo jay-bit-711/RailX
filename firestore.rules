@@ -147,10 +147,11 @@ service cloud.firestore {
              (!('totalPrice' in data) || (data.totalPrice is number && data.totalPrice >= 0 && data.totalPrice <= 100000)) &&
              (!('ratings' in data) || (
                data.ratings is map &&
-               data.ratings.keys().hasOnly(['train', 'ride', 'food', 'trainHygiene', 'foodHygiene', 'maintenance']) &&
-               data.ratings.keys().hasAll(['train', 'ride', 'food', 'trainHygiene', 'foodHygiene', 'maintenance']) &&
+               data.ratings.keys().hasOnly(['train', 'lastMile', 'ride', 'food', 'trainHygiene', 'foodHygiene', 'maintenance']) &&
+               data.ratings.keys().hasAll(['train', 'food', 'trainHygiene', 'foodHygiene', 'maintenance']) &&
                data.ratings.train is int && data.ratings.train >= 1 && data.ratings.train <= 5 &&
-               data.ratings.ride is int && data.ratings.ride >= 1 && data.ratings.ride <= 5 &&
+               (('lastMile' in data.ratings && data.ratings.lastMile is int && data.ratings.lastMile >= 1 && data.ratings.lastMile <= 5) ||
+                (!('lastMile' in data.ratings) && data.ratings.ride is int && data.ratings.ride >= 1 && data.ratings.ride <= 5)) &&
                data.ratings.food is int && data.ratings.food >= 1 && data.ratings.food <= 5 &&
                data.ratings.trainHygiene is int && data.ratings.trainHygiene >= 1 && data.ratings.trainHygiene <= 5 &&
                data.ratings.foodHygiene is int && data.ratings.foodHygiene >= 1 && data.ratings.foodHygiene <= 5 &&

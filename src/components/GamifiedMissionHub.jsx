@@ -6,28 +6,27 @@ import {
   CheckCircle2,
   Compass,
   Coffee,
-  LifeBuoy,
-  ShieldAlert,
   Share2,
-  Smartphone,
   Train
 } from 'lucide-react';
 
 const STAGES = [
-  { id: 1, label: '09:45', title: 'Leave for station', description: 'Your ride to Airoli station is ready.' },
-  { id: 2, label: '10:01', title: 'Station entrance', description: 'Last known station · Airoli' },
-  { id: 3, label: '10:03', title: 'Find your platform', description: 'Platform 4 · Coach S5' },
-  { id: 4, label: '10:05', title: 'Board your train', description: 'Train 12951 · Coach S5' },
-  { id: 5, label: '12:45', title: 'Food stop', description: 'Surat Junction' },
-  { id: 6, label: '16:30', title: 'Water & tea', description: 'Stretch, hydrate and check your next stop.' },
-  { id: 7, label: '22:05', title: 'Destination station', description: 'Arrive at New Delhi · Platform 4' },
-  { id: 8, label: '22:10', title: 'Last mile', description: 'Choose local transport or end at the station.' },
-  { id: 9, label: '22:45', title: 'Arrived', description: 'Rate your journey and close the trip.' }
+  { id: 1, chip: '🚗 09:45', label: '09:45', title: 'Leave for station', description: 'Ride to Airoli' },
+  { id: 2, chip: '🚪 10:01', label: '10:01', title: 'Station entrance', description: 'Station · Airoli' },
+  { id: 3, chip: '🧭 PF', label: '10:03', title: 'Find your platform', description: 'PF 4 · Coach S5' },
+  { id: 4, chip: '🚆 10:05', label: '10:05', title: 'Board your train', description: 'Train 12951 · Coach S5' },
+  { id: 5, chip: '🍱 12:45', label: '12:45', title: 'Food stop', description: 'Surat Junction' },
+  { id: 6, chip: '☕ 16:30', label: '16:30', title: 'Water & tea', description: 'Hydrate · stretch' },
+  { id: 7, chip: '🇮🇳 17:20', label: '17:20', title: 'Scenic viewpoint', description: 'Chambal · choose window' },
+  { id: 8, chip: '🏁 22:05', label: '22:05', title: 'Destination station', description: 'New Delhi · PF 4' },
+  { id: 9, chip: '🚪 22:10', label: '22:10', title: 'Last-mile exit', description: 'Follow exit guidance' },
+  { id: 10, chip: '🚕 22:15', label: '22:15', title: 'Local transport', description: 'Ride home · or finish' },
+  { id: 11, chip: '✅ 22:45', label: '22:45', title: 'Arrived', description: 'Rate · complete trip' }
 ];
 
 const RATING_CATEGORIES = [
   ['train', 'Train'],
-  ['ride', 'Uber / auto'],
+  ['lastMile', 'Last-mile'],
   ['food', 'Food'],
   ['trainHygiene', 'Train hygiene'],
   ['foodHygiene', 'Food hygiene'],
@@ -35,13 +34,11 @@ const RATING_CATEGORIES = [
 ];
 
 export default function GamifiedMissionHub({
-  onOpenEngineDeck,
   onOpenRapidAssistance,
   onOpenFamilyShare,
   onOpenFoodSheet,
-  onOpenDataSheet,
-  onOpenSupport,
   journey,
+  isActive,
   ridePref = 'Auto',
   onSetRidePref,
   onComplete,
@@ -52,9 +49,10 @@ export default function GamifiedMissionHub({
   const [missionStep, setMissionStep] = useState(1);
   const [pfDirection, setPfDirection] = useState('left');
   const [lastMileChoice, setLastMileChoice] = useState('ride');
+  const [scenicWindow, setScenicWindow] = useState('left');
   const [ratings, setRatings] = useState({
     train: 0,
-    ride: 0,
+    lastMile: 0,
     food: 0,
     trainHygiene: 0,
     foodHygiene: 0,
@@ -62,13 +60,24 @@ export default function GamifiedMissionHub({
   });
   useEffect(() => {
     setMissionStep(1);
-    setRatings({ train: 0, ride: 0, food: 0, trainHygiene: 0, foodHygiene: 0, maintenance: 0 });
+    setRatings({ train: 0, lastMile: 0, food: 0, trainHygiene: 0, foodHygiene: 0, maintenance: 0 });
   }, [journey?.id]);
 
   const currentStage = STAGES[missionStep - 1];
   const allRated = Object.values(ratings).every((rating) => rating > 0);
   const trainName = journey?.trainName || 'Mumbai Rajdhani Express';
   const trainNumber = journey?.trainNumber || '12951';
+  const helpEntry = isActive ? (
+    <div className="sticky top-0 z-30 flex items-center justify-end gap-2 bg-black/90 py-1 backdrop-blur">
+      <a href="tel:139" aria-label="SOS call 139. No auto-dispatch" className="flex items-center gap-1.5 rounded-full border border-[#D4AF37] bg-black px-3 py-2 text-xs font-bold text-[#D4AF37]">
+        🆘 <span>SOS</span>
+      </a>
+      <button type="button" aria-label="Help categories" onClick={() => onOpenRapidAssistance?.('categories')} className="flex items-center gap-1.5 rounded-full border border-[#D4AF37] bg-black px-3 py-2 text-xs font-bold text-[#D4AF37]">
+        🛟 <span>Help</span>
+      </button>
+      <span className="text-[9px] text-zinc-400">No auto-dispatch</span>
+    </div>
+  ) : null;
 
   if (!journey) {
     return (
@@ -90,6 +99,7 @@ export default function GamifiedMissionHub({
 
   return (
     <section className="space-y-3 animate-in fade-in">
+      {helpEntry}
       <header className="rounded-2xl border border-[#222] bg-[#080808] p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -111,22 +121,27 @@ export default function GamifiedMissionHub({
           <p className="mt-1 text-xs font-bold text-white">{journey.fromStation} · Platform 4</p>
         </div>
 
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          <button type="button" onClick={() => onOpenRapidAssistance?.('sos')} className="flex items-center justify-center gap-1 rounded-lg border border-[#D4AF37] py-2 text-[10px] font-bold text-[#D4AF37]"><ShieldAlert className="h-3.5 w-3.5" />SOS</button>
-          <button type="button" onClick={onOpenSupport} className="flex items-center justify-center gap-1 rounded-lg border border-[#333] py-2 text-[10px] font-bold"><LifeBuoy className="h-3.5 w-3.5" />Support</button>
-          <button type="button" onClick={onOpenDataSheet} className="flex items-center justify-center gap-1 rounded-lg border border-[#333] py-2 text-[10px] font-bold"><Smartphone className="h-3.5 w-3.5 text-[#D4AF37]" />Data</button>
-        </div>
-
-        <div className="mt-3 grid grid-cols-3 gap-1.5">
+        <div className="mt-3 grid grid-cols-4 gap-1.5">
           {STAGES.map((stage) => (
-            <button key={stage.id} type="button" onClick={() => setMissionStep(stage.id)} aria-current={missionStep === stage.id ? 'step' : undefined} className={`rounded-lg border px-1 py-2 text-center text-[9px] font-mono ${missionStep === stage.id ? 'border-white bg-white text-black font-extrabold' : missionStep > stage.id ? 'border-[#333] text-[#D4AF37]' : 'border-[#222] text-zinc-500'}`}>
-              {stage.label} · {stage.id === 9 ? 'Rate' : stage.title.split(' ')[0]}
+            <button key={stage.id} type="button" onClick={() => setMissionStep(stage.id)} aria-label={`Stage ${stage.id} ${stage.chip}`} aria-current={missionStep === stage.id ? 'step' : undefined} className={`rounded-lg border px-1 py-2 text-center text-[9px] font-mono ${missionStep === stage.id ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37] font-extrabold' : missionStep > stage.id ? 'border-[#333] text-[#D4AF37]' : 'border-[#222] text-zinc-500'}`}>
+              {stage.chip}
             </button>
           ))}
         </div>
       </header>
 
-      <article className="rounded-2xl border border-[#222] bg-[#080808] p-4">
+      <section className="w-full rounded-2xl border border-[#D4AF37]/40 bg-[#080808] p-3" aria-label="🇮🇳 Scenic · 17:20">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-bold text-white">🇮🇳 Scenic</span>
+          <span className="text-xs font-mono text-[#D4AF37]">17:20 · Chambal</span>
+          <div className="flex gap-1">
+            <button type="button" aria-label="Left window" aria-pressed={scenicWindow === 'left'} onClick={() => setScenicWindow('left')} className={`rounded-lg px-2 py-1 ${scenicWindow === 'left' ? 'bg-[#D4AF37] text-black' : 'text-white'}`}>◀</button>
+            <button type="button" aria-label="Right window" aria-pressed={scenicWindow === 'right'} onClick={() => setScenicWindow('right')} className={`rounded-lg px-2 py-1 ${scenicWindow === 'right' ? 'bg-[#D4AF37] text-black' : 'text-white'}`}>▶</button>
+          </div>
+        </div>
+      </section>
+
+      <article key={missionStep} className="ride-stage-motion rounded-2xl border border-[#222] bg-[#080808] p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-[9px] font-mono uppercase tracking-widest text-[#D4AF37]">Stage {String(missionStep).padStart(2, '0')} · {currentStage.label}</div>
@@ -151,6 +166,14 @@ export default function GamifiedMissionHub({
         )}
 
         {missionStep === 2 && (
+          <div className="mt-4 space-y-3 text-center">
+            <div className="rounded-xl border border-[#222] bg-black p-4 text-3xl">🚪</div>
+            <p className="text-xs text-zinc-300">{journey.fromStation} · 10:01</p>
+            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">PF · 10:03</button>
+          </div>
+        )}
+
+        {missionStep === 3 && (
           <div className="mt-4">
             <DirectionCompass direction={pfDirection} />
             <p className="mt-3 text-center text-xs font-bold text-white">
@@ -163,29 +186,16 @@ export default function GamifiedMissionHub({
                 </button>
               ))}
             </div>
-            <button type="button" onClick={advance} className="mt-4 w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">I’m at the station</button>
-          </div>
-        )}
-
-        {missionStep === 3 && (
-          <div className="mt-4 space-y-3">
-            <DirectionCompass direction={pfDirection} />
-            <div className="rounded-xl border border-[#222] bg-black p-3 text-xs"><span className="text-zinc-400">Platform 4</span><span className="float-right font-bold text-[#D4AF37]">Coach S5</span></div>
-            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Board train · 10:03</button>
+            <button type="button" onClick={advance} className="mt-4 w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Board · 10:05</button>
           </div>
         )}
 
         {missionStep === 4 && (
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-[#222] bg-black p-4 text-center">
-              <Train className="mx-auto h-7 w-7 text-[#D4AF37]" /><p className="mt-2 text-sm font-bold">On board · {trainNumber}</p><p className="mt-1 text-[10px] text-zinc-400">Last known station · {journey.fromStation}</p>
+              <Train className="mx-auto h-7 w-7 text-[#D4AF37]" /><p className="mt-2 text-sm font-bold">{trainNumber} · Coach S5</p><p className="mt-1 text-[10px] text-zinc-400">{journey.fromStation} · 10:05</p>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button type="button" onClick={onOpenEngineDeck} className="rounded-lg border border-[#333] py-2 text-[10px] font-bold">Engine</button>
-              <button type="button" onClick={() => onOpenRapidAssistance?.('sos')} className="rounded-lg border border-[#333] py-2 text-[10px] font-bold">Help</button>
-              <button type="button" onClick={onOpenDataSheet} className="rounded-lg border border-[#333] py-2 text-[10px] font-bold">Data</button>
-            </div>
-            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Continue to Surat · 12:45</button>
+            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Food · 12:45</button>
           </div>
         )}
 
@@ -200,43 +210,55 @@ export default function GamifiedMissionHub({
         {missionStep === 6 && (
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-[#222] bg-black p-3 text-xs">Water and tea stop · remember to take your bottle with you.</div>
-            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Continue to destination · 22:05</button>
+            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Scenic · 17:20</button>
           </div>
         )}
 
         {missionStep === 7 && (
           <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-[#222] bg-black p-3 text-xs"><div className="font-bold">{journey.toStation} · Platform 4</div><p className="mt-1 text-[10px] text-zinc-400">Check your bags and follow the exit signs.</p></div>
-            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Plan last mile</button>
+            <p className="text-center text-xs text-zinc-300">Chambal · 17:20 · {scenicWindow} window</p>
+            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Destination · 22:05</button>
           </div>
         )}
 
         {missionStep === 8 && (
           <div className="mt-4 space-y-3">
-            <DirectionCompass direction={pfDirection} />
-            <p className="text-center text-xs font-bold text-white">Exit Platform 4 · {pfDirection} from gate · follow last-mile signs</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" aria-pressed={lastMileChoice === 'ride'} onClick={() => setLastMileChoice('ride')} className={`rounded-xl border p-3 text-left text-xs font-bold ${lastMileChoice === 'ride' ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#333]'}`}>Board local transport<span className="mt-1 block text-[10px] text-zinc-400">{ridePref} · to your door</span></button>
-              <button type="button" aria-pressed={lastMileChoice === 'station'} onClick={() => setLastMileChoice('station')} className={`rounded-xl border p-3 text-left text-xs font-bold ${lastMileChoice === 'station' ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#333]'}`}>End at station<span className="mt-1 block text-[10px] text-zinc-400">Finish here</span></button>
-            </div>
-            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">{lastMileChoice === 'ride' ? `Continue by ${ridePref}` : 'End journey at station'}</button>
+            <div className="rounded-xl border border-[#222] bg-black p-3 text-xs"><div className="font-bold">{journey.toStation} · Platform 4</div><p className="mt-1 text-[10px] text-zinc-400">🏁 Arrived · 22:05</p></div>
+            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Exit · 22:10</button>
           </div>
         )}
 
         {missionStep === 9 && (
           <div className="mt-4 space-y-3">
+            <DirectionCompass direction={pfDirection} />
+            <p className="text-center text-xs font-bold text-white">Exit Platform 4 · {pfDirection} from gate · follow last-mile signs</p>
+            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Pickup · 22:15</button>
+          </div>
+        )}
+
+        {missionStep === 10 && (
+          <div className="mt-4 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" aria-pressed={lastMileChoice === 'ride'} onClick={() => setLastMileChoice('ride')} className={`rounded-xl border p-3 text-left text-xs font-bold ${lastMileChoice === 'ride' ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#333]'}`}>🚕 {ridePref}<span className="mt-1 block text-[10px] text-zinc-400">To your door</span></button>
+              <button type="button" aria-pressed={lastMileChoice === 'station'} onClick={() => setLastMileChoice('station')} className={`rounded-xl border p-3 text-left text-xs font-bold ${lastMileChoice === 'station' ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#333]'}`}>🏁 Station<span className="mt-1 block text-[10px] text-zinc-400">End here</span></button>
+            </div>
+            <button type="button" onClick={advance} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black">Arrived · 22:45</button>
+          </div>
+        )}
+
+        {missionStep === 11 && (
+          <div className="mt-4 space-y-3">
             {RATING_CATEGORIES.map(([key, label]) => (
               <div key={key} className="flex items-center justify-between gap-2 border-b border-[#222] pb-2">
                 <span className="text-[11px]">{label}</span>
                 <div className="flex gap-1" role="group" aria-label={`Rate ${label}`}>
-                  {[1, 2, 3, 4, 5].map((rating) => (
-                    <button key={rating} type="button" aria-label={`${rating} stars for ${label}`} aria-pressed={ratings[key] === rating} onClick={() => setRatings((current) => ({ ...current, [key]: rating }))} className={`px-1 text-sm ${ratings[key] >= rating ? 'text-[#D4AF37]' : 'text-zinc-600'}`}>★</button>
+                  {['😡', '😕', '😐', '🙂', '🤩'].map((emoji, index) => (
+                    <button key={emoji} type="button" aria-label={`${index + 1} of 5 for ${label}`} aria-pressed={ratings[key] === index + 1} onClick={() => setRatings((current) => ({ ...current, [key]: index + 1 }))} className={`rounded-lg px-1 text-lg ${ratings[key] === index + 1 ? 'bg-[#D4AF37]/15' : 'opacity-60'}`}>{emoji}</button>
                   ))}
                 </div>
               </div>
             ))}
-            <button type="button" disabled={!allRated} onClick={() => onComplete(ratings)} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black disabled:cursor-not-allowed disabled:opacity-40">Complete journey · +250 XP</button>
-            {!allRated && <p className="text-center text-[10px] text-zinc-500">Rate each item to complete this trip.</p>}
+            <button type="button" disabled={!allRated} onClick={() => onComplete(ratings)} className="w-full rounded-xl bg-white py-3 text-xs font-extrabold text-black disabled:cursor-not-allowed disabled:opacity-40">✅ Complete · +250 XP</button>
           </div>
         )}
       </article>

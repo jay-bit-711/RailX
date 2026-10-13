@@ -14,8 +14,6 @@ import {
   CheckCircle2,
   Compass,
   Radio,
-  ShieldAlert,
-  LifeBuoy,
   Cog,
   MessageCircle
 } from 'lucide-react';
@@ -33,20 +31,33 @@ import FoodOrderSheet from './components/FoodOrderSheet';
 import DataBoosterSheet from './components/DataBoosterSheet';
 import PaymentSheet from './components/PaymentSheet';
 import PhoneAuthModal from './components/PhoneAuthModal';
+import { TicketCard } from './components/RapidAssistanceModal';
 import { subscribeToAuth, getUserProfile, signOutUser } from './services/authService';
 import { getUserJourneys, updateJourneyStatus } from './services/firestoreService';
 
 const ADDON_PRICES = { 'First mile': 80, 'Station help': 40, Food: 120, Data: 49, 'Last mile': 80 };
+const HELP_TICKETS_KEY = 'railx-help-tickets';
 
 export default function App() {
   // Navigation: 'radar' | 'mission' | 'memory' | 'engine' | 'feed' | 'me'
-  const [activeTab, setActiveTab] = useState('radar');
+  const [activeTab, setActiveTab] = useState('go');
   const [timeStr, setTimeStr] = useState('09:45');
   const [userXp, setUserXp] = useState(580); // Level 11
   const [streakDays, setStreakDays] = useState(7);
   const [journeys, setJourneys] = useState([]);
   const [activeJourney, setActiveJourney] = useState(null);
+  const [journeyMode, setJourneyMode] = useState('idle');
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
+  const [helpTickets, setHelpTickets] = useState(() => {
+    try {
+      const savedTickets = window.localStorage.getItem(HELP_TICKETS_KEY);
+      const parsedTickets = savedTickets ? JSON.parse(savedTickets) : [];
+      return Array.isArray(parsedTickets) ? parsedTickets : [];
+    } catch (error) {
+      console.error('Could not load saved help tickets:', error);
+      return [];
+    }
+  });
 
   // Authentication & Profile State
   const [user, setUser] = useState(null);
@@ -90,6 +101,15 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(HELP_TICKETS_KEY, JSON.stringify(helpTickets));
+    } catch (error) {
+      console.error('Could not save help tickets:', error);
+      showToast('Help ticket history could not be saved on this device.');
+    }
+  }, [helpTickets]);
+
   // Firebase Auth sync
   useEffect(() => {
     const unsub = subscribeToAuth(async (currentUser) => {
@@ -110,7 +130,15 @@ export default function App() {
       getUserJourneys(user.uid).then((savedJourneys) => {
         if (isCurrent) {
           setJourneys(savedJourneys);
-          setActiveJourney((current) => current || savedJourneys.find((journey) => journey.status === 'active') || null);
+          const savedActiveJourney = savedJourneys.find((journey) => journey.status === 'active') || null;
+          setActiveJourney(savedActiveJourney);
+          if (savedActiveJourney) {
+            setJourneyMode('active');
+            setActiveTab('mission');
+          } else {
+            setJourneyMode('idle');
+            setActiveTab('go');
+          }
         }
       });
     } else {
@@ -129,6 +157,9 @@ export default function App() {
   const openAssistance = (section = 'sos') => {
     setAssistanceSection(section);
     setIsAssistanceOpen(true);
+  };
+  const advanceHelpTicket = (ticketId, status) => {
+    setHelpTickets((current) => current.map((ticket) => ticket.id === ticketId ? { ...ticket, status } : ticket));
   };
 
   const handleGpsDetect = () => {
@@ -169,6 +200,7 @@ export default function App() {
       }
     }
     setActiveJourney(active);
+    setJourneyMode('active');
     setJourneys((current) => [active, ...current.filter((item) => item.id !== active.id)]);
     setActiveTab('mission');
   };
@@ -190,9 +222,10 @@ export default function App() {
         : [savedCompleted, ...current]);
     }
     setActiveJourney(null);
+    setJourneyMode('idle');
     setUserXp((xp) => xp + 250);
     setIsLevelUpOpen(true);
-    setActiveTab('mission');
+    setActiveTab('go');
   };
 
   return (
@@ -304,16 +337,12 @@ export default function App() {
 
           {activeTab === 'go' && (
             <div className="space-y-4 animate-in fade-in">
-              <header>
-                <h1 className="text-lg font-extrabold">Go somewhere</h1>
-                <p className="text-xs text-zinc-400">Choose how you travel.</p>
-              </header>
 
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'daily', label: 'Daily', detail: 'Local · Metro' },
-                  { id: 'quick', label: 'Quick', detail: 'Unreserved' },
-                  { id: 'plan', label: 'Plan', detail: 'Reserved' }
+                  { id: 'daily', label: '🚇', detail: 'Daily' },
+                  { id: 'quick', label: '🎫', detail: 'Quick' },
+                  { id: 'plan', label: '🗓️', detail: 'Plan' }
                 ].map((mode) => (
                   <button
                     key={mode.id}
@@ -329,16 +358,10 @@ export default function App() {
                         : 'border-[#252525] bg-[#080808]'
                     }`}
                   >
-                    <span className="block text-sm font-bold">{mode.label}</span>
-                    <span className="mt-1 block text-[10px] text-zinc-400">{mode.detail}</span>
+                    <span className="block text-2xl">{mode.label}</span>
+                    <span className="mt-1 block text-[10px] font-bold text-zinc-300">{mode.detail}</span>
                   </button>
                 ))}
-              </div>
-
-              <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 px-3 py-2.5 text-[11px] text-zinc-300">
-                {bookingMode === 'daily' && 'Local / metro pass · flexible daily travel, no reserved seat.'}
-                {bookingMode === 'quick' && 'Unreserved ticket · general coach, no seat selection.'}
-                {bookingMode === 'plan' && `${selectedTrain.name} · reserved seat · ₹${selectedTrain.price}`}
               </div>
 
               <div className="rounded-2xl border border-[#222] bg-[#080808] p-4 space-y-3">
@@ -357,44 +380,19 @@ export default function App() {
                   <span className="mb-1 block text-[9px] uppercase tracking-wide text-zinc-500">Travel date</span>
                   <input type="date" value={journeyDate} onChange={(event) => setJourneyDate(event.target.value)} className="w-full rounded-lg border border-[#222] bg-black px-3 py-2 text-xs text-white outline-none focus:border-[#D4AF37]" />
                 </label>
-                {bookingMode === 'plan' && (
-                  <>
-                    <div>
-                      <span className="mb-1.5 block text-[9px] uppercase tracking-wide text-zinc-500">Class</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {['1A', '2A', '3A', 'SL', 'CC'].map((travelClass) => (
-                          <button key={travelClass} type="button" aria-pressed={selectedCls === travelClass} onClick={() => setSelectedCls(travelClass)} className={`rounded-lg border px-3 py-1.5 text-[10px] font-bold ${selectedCls === travelClass ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#252525] text-zinc-400'}`}>
-                            {travelClass}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="mb-1.5 block text-[9px] uppercase tracking-wide text-zinc-500">Passengers</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {passengers.map((passenger) => (
-                          <button key={passenger.id} type="button" aria-pressed={passenger.selected} onClick={() => setPassengers((current) => current.map((item) => item.id === passenger.id ? { ...item, selected: !item.selected } : item))} className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold ${passenger.selected ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#252525] text-zinc-400'}`}>
-                            {passenger.selected ? '✓ ' : '+ '}{passenger.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
               </div>
 
               <div className="rounded-2xl border border-[#222] bg-[#080808] p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-sm font-bold">Trip add-ons</h2>
-                    <p className="text-[10px] text-zinc-500">Optional. Book even if you skip these.</p>
+                    <h2 className="text-sm font-bold" aria-label="Trip add-ons">Add-ons</h2>
                   </div>
-                  <button type="button" onClick={() => setActiveAddons(['First mile', 'Station help', 'Food', 'Data', 'Last mile'])} className="text-[10px] font-bold text-[#D4AF37] underline underline-offset-2">
-                    Add all door-to-door
+                  <button type="button" aria-label="Add all add-ons" onClick={() => setActiveAddons(['First mile', 'Station help', 'Food', 'Data', 'Last mile'])} className="text-xl font-bold text-[#D4AF37]">
+                    ＋
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {['First mile', 'Station help', 'Food', 'Data', 'Last mile'].map((addon) => {
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[['First mile', '🚗'], ['Station help', '🧭'], ['Food', '🍱'], ['Data', '📶'], ['Last mile', '🚕']].map(([addon, icon]) => {
                     const selected = activeAddons.includes(addon);
                     return (
                       <button
@@ -402,11 +400,12 @@ export default function App() {
                         type="button"
                         aria-pressed={selected}
                         onClick={() => setActiveAddons(selected ? activeAddons.filter((item) => item !== addon) : [...activeAddons, addon])}
-                        className={`min-h-10 rounded-xl border px-3 py-2 text-left text-[11px] font-semibold ${
+                        aria-label={addon}
+                        className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl border px-1 py-2 text-[10px] font-semibold ${
                           selected ? 'border-[#D4AF37] text-[#D4AF37]' : 'border-[#252525] text-zinc-400'
                         }`}
                       >
-                        <span aria-hidden="true">{selected ? '✓ ' : '+ '}</span>{addon}
+                        <span aria-hidden="true" className="text-xl">{icon}</span><span>{selected ? '✓' : '+'}</span>
                       </button>
                     );
                   })}
@@ -418,22 +417,19 @@ export default function App() {
                 onClick={() => setIsPaySheetOpen(true)}
                 className="w-full rounded-xl bg-white py-3.5 text-sm font-extrabold text-black active:scale-[.98]"
               >
-                {bookingMode === 'daily' ? `Get pass · ₹${bookingTotal}` : bookingMode === 'quick' ? `Book unreserved · ₹${bookingTotal}` : `Plan reserved · ₹${bookingTotal}`}
+                📖 Book · ₹{bookingTotal}
               </button>
-              <p className="text-center text-[10px] text-zinc-500">Review details in the next step. No add-on is required.</p>
             </div>
           )}
 
           {/* TAB 2: GAMIFIED MISSION HUB (AIROLI ➔ CONNAUGHT PLACE) */}
           <div className={activeTab === 'mission' ? '' : 'hidden'}>
             <GamifiedMissionHub
-              onOpenEngineDeck={() => setActiveTab('engine')}
               onOpenRapidAssistance={openAssistance}
               onOpenFamilyShare={() => setIsFamilyShareOpen(true)}
               onOpenFoodSheet={() => setIsFoodSheetOpen(true)}
-              onOpenDataSheet={() => setIsDataSheetOpen(true)}
-              onOpenSupport={() => openAssistance('support')}
               journey={activeJourney}
+              isActive={journeyMode === 'active'}
               onComplete={completeJourney}
               onSetRidePref={setRidePref}
               onTravelAgain={() => setActiveTab('go')}
@@ -549,13 +545,11 @@ export default function App() {
           {activeTab === 'me' && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={() => openAssistance('sos')} className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]">
-                  <ShieldAlert className="h-6 w-6" />
-                  <span className="text-sm font-extrabold">SOS</span>
+                <button type="button" aria-label="Support" onClick={() => openAssistance('support')} className="flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border border-[#D4AF37] bg-black text-2xl text-[#D4AF37]">
+                  🛟<span className="text-xs font-extrabold">Support</span><span className="text-[10px]">📞 139 · 🛟 RailMadad</span>
                 </button>
-                <button type="button" onClick={() => openAssistance('support')} className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border border-white bg-white text-black">
-                  <LifeBuoy className="h-6 w-6" />
-                  <span className="text-sm font-extrabold">Support</span>
+                <button type="button" aria-label="My tickets" onClick={() => openAssistance('tickets')} className="flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border border-white bg-black text-2xl text-white">
+                  📋<span className="text-xs font-extrabold">My tickets</span><span className="text-[10px]">{helpTickets.length}</span>
                 </button>
               </div>
               <div className="text-center pt-2">
@@ -601,6 +595,16 @@ export default function App() {
                     : journeys.filter((journey) => journey.status === 'completed').map((journey) => <div key={journey.id} className="flex justify-between border-t border-[#222] py-2"><span>{journey.trainName} · {journey.fromStation} → {journey.toStation}</span><span>{journey.journeyDate}</span></div>)}
                 </div>
               </div>
+
+              <section className="space-y-2 rounded-xl border border-[#222] bg-[#080808] p-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-bold">Past tickets</h2>
+                  <button type="button" onClick={() => openAssistance('tickets')} className="text-[10px] font-bold text-[#D4AF37]">View all</button>
+                </div>
+                {helpTickets.length === 0
+                  ? <p className="text-[10px] text-zinc-500">No help tickets yet.</p>
+                  : [...helpTickets].reverse().slice(0, 3).map((ticket) => <TicketCard key={ticket.id} ticket={ticket} onAdvance={advanceHelpTicket} />)}
+              </section>
 
               <div className="rounded-xl border border-[#222] bg-[#080808] p-3 space-y-2 text-xs">
                 <h2 className="font-bold">Bills & invoices</h2>
@@ -656,9 +660,9 @@ export default function App() {
           className="absolute bottom-0 inset-x-0 h-[60px] bg-black/95 backdrop-blur border-t border-[#1a1a1a] flex justify-around items-center z-40"
         >
           {[
-            { id: 'radar', label: 'Radar', icon: <Radio className="w-4 h-4" /> },
             { id: 'go', label: 'Go', icon: <MapPin className="w-4 h-4" /> },
             { id: 'mission', label: 'Ride', icon: <Zap className="w-4 h-4" /> },
+            { id: 'radar', label: 'Radar', icon: <Radio className="w-4 h-4" /> },
             { id: 'memory', label: 'Memories', icon: <Sparkles className="w-4 h-4" /> },
             { id: 'me', label: 'Me', icon: <Award className="w-4 h-4" /> }
           ].map((item) => {
@@ -714,6 +718,9 @@ export default function App() {
           onClose={() => setIsAssistanceOpen(false)}
           initialTab={assistanceSection}
           onToast={showToast}
+          tickets={helpTickets}
+          onCreateTicket={(ticket) => setHelpTickets((current) => [...current, ticket])}
+          onAdvanceTicket={advanceHelpTicket}
         />
 
         {/* Family Live Route Tracker (Rapido Style) */}
