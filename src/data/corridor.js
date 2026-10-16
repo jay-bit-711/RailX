@@ -1,20 +1,20 @@
 /**
  * RailX primary corridor — locked 13 Oct 2026
  * Sources: LPI, SC, BMT → Destinations: BZA, GNT, TNL
- * Door places ~5–10 km / Rapido-Uber-Ola style coverage
+ * Station anchors only (lat/lng). First/last mile discovered via Places Nearby.
  * IRCTC: Path A (deep-link). Ride mode: user picks bike|auto|cab; family rules below.
  */
 
 export const CORRIDOR_STATIONS = {
   sources: [
-    { code: 'LPI', name: 'Lingampalli', city: 'Hyderabad' },
-    { code: 'SC', name: 'Secunderabad Jn', city: 'Hyderabad' },
-    { code: 'BMT', name: 'Begumpet', city: 'Hyderabad' }
+    { code: 'LPI', name: 'Lingampalli', city: 'Hyderabad', lat: 17.4832, lng: 78.3173 },
+    { code: 'SC', name: 'Secunderabad Jn', city: 'Hyderabad', lat: 17.4337, lng: 78.5016 },
+    { code: 'BMT', name: 'Begumpet', city: 'Hyderabad', lat: 17.43871, lng: 78.458594 }
   ],
   destinations: [
-    { code: 'BZA', name: 'Vijayawada Jn', city: 'Vijayawada' },
-    { code: 'GNT', name: 'Guntur Jn', city: 'Guntur' },
-    { code: 'TNL', name: 'Tenali Jn', city: 'Tenali' }
+    { code: 'BZA', name: 'Vijayawada Jn', city: 'Vijayawada', lat: 16.5184, lng: 80.6195 },
+    { code: 'GNT', name: 'Guntur Jn', city: 'Guntur', lat: 16.3008, lng: 80.4428 },
+    { code: 'TNL', name: 'Tenali Jn', city: 'Tenali', lat: 16.24252, lng: 80.63993 }
   ]
 };
 
@@ -34,7 +34,7 @@ export const RIDE_RULES = {
 
 export const IRCTC_PATH = 'A'; // deep-link only
 
-/** Door / last-mile localities with bus hubs + highlights */
+/** Legacy manual localities — fallback only. Prefer dynamic Places nearby. */
 export const LOCALITIES = [
   // —— User-provided (Hyd side) ——
   {
@@ -186,3 +186,13 @@ export const SCENIC_CHIPS = [
   { id: 'beeram_gutta', label: 'Beeramguda Gutta temple', near: ['LPI'] },
   { id: 'mangalagiri_temple', label: 'Mangalagiri temple town', near: ['GNT', 'BZA'] }
 ];
+
+/** Helper: all stations flat for lookup */
+export const ALL_STATIONS = [
+  ...CORRIDOR_STATIONS.sources,
+  ...CORRIDOR_STATIONS.destinations
+];
+
+export function getStationByCode(code) {
+  return ALL_STATIONS.find((s) => s.code === code) || null;
+}

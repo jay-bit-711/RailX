@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CORRIDOR_TRAINS, INITIAL_PASSENGERS, INITIAL_FEEDS } from './data/mockData';
-import { CORRIDOR_STATIONS, LOCALITIES, RIDE_RULES } from './data/corridor';
+import { CORRIDOR_STATIONS, LOCALITIES, RIDE_RULES, getStationByCode } from './data/corridor';
+import { nearbyPlaces } from './services/placesService';
 import EngineLineLogo from './components/EngineLineLogo';
 import TrainRadarMap from './components/TrainRadarMap';
 import GamifiedMissionHub from './components/GamifiedMissionHub';
@@ -18,7 +19,7 @@ import { subscribeToAuth, getUserProfile, signOutUser } from './services/authSer
 
 /**
  * NOTE: This is a recovery build focusing on corridor chips + defaults.
- * If your fuller App.jsx existed only locally, re-merge from backup after pull.
+ * Door chips now try Places Nearby around the selected station, fall back to LOCALITIES.
  */
 export default function App() {
   const [activeTab, setActiveTab] = useState('go');
@@ -30,6 +31,8 @@ export default function App() {
   const [assistanceOpen, setAssistanceOpen] = useState(false);
   const [assistanceTab, setAssistanceTab] = useState('categories');
   const [toast, setToast] = useState(null);
+  const [nearbyDoors, setNearbyDoors] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -40,6 +43,33 @@ export default function App() {
     setAssistanceTab(tab);
     setAssistanceOpen(true);
   };
+
+  // Dynamic nearby places around destination station (last mile)
+  useEffect(() => {
+    const code = (destination.split('·')[0] || '').trim();
+    const station = getStationByCode(code);
+    if (!station?.lat) {
+      setNearbyDoors(LOCALITIES.slice(0, 8).map(l => ({ id: l.id, name: l.name })));
+      return;
+    }
+
+    let cancelled = false;
+    setNearbyLoading(true);
+    nearbyPlaces(station.lat, station.lng).then((res) => {
+      if (cancelled) return;
+      if (res.places?.length) {
+        setNearbyDoors(res.places);
+      } else {
+        // Fallback to manual localities near this station
+        const fallback = LOCALITIES.filter(l => l.nearStations?.includes(code)).slice(0, 8)
+          .map(l => ({ id: l.id, name: l.name }));
+        setNearbyDoors(fallback.length ? fallback : LOCALITIES.slice(0, 8).map(l => ({ id: l.id, name: l.name })));
+        if (res.error) showToast('Places fallback: ' + res.error.slice(0, 40));
+      }
+      setNearbyLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [destination]);
 
   return (
     <div className="bg-black min-h-screen text-white flex justify-center font-sans">
@@ -59,7 +89,6 @@ export default function App() {
               <p className="text-xs text-zinc-400">LPI · SC · BMT → BZA · GNT · TNL</p>
 
               <div className="grid grid-cols-3 gap-2">
-                {[(['daily','Daily'],['quick','Quick'],['plan','Plan'])].flatMap(()=>[] )}
                 {[
                   { id: 'daily', label: 'Daily' },
                   { id: 'quick', label: 'Quick' },
@@ -95,9 +124,9 @@ export default function App() {
                 </div>
                 <input value={destination} onChange={(e)=>setDestination(e.target.value)} className="w-full rounded-lg border border-[#222] bg-black px-3 py-2 text-xs" />
 
-                <div className="text-[9px] uppercase text-zinc-500">Door / last mile</div>
+                <div className="text-[9px] uppercase text-zinc-500">Door / last mile {nearbyLoading && '· loading'}</div>
                 <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
-                  {LOCALITIES.slice(0, 14).map((l) => (
+                  {nearbyDoors.map((l) => (
                     <button key={l.id} type="button" onClick={() => {
                       const code = (destination.split('·')[0] || 'BZA').trim();
                       setDestination(`${code} · ${l.name}`);
@@ -145,7 +174,6 @@ export default function App() {
         </main>
 
         <nav className="absolute bottom-0 inset-x-0 h-14 border-t border-[#1a1a1a] bg-black flex justify-around items-center text-[10px]">
-          {[(['go','Go'],['mission','Ride'],['radar','Radar'],['memory','Mem'],['me','Me'])].map(()=>null)}
           {[
             { id: 'go', label: 'Go' },
             { id: 'mission', label: 'Ride' },
